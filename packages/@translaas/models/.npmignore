@@ -1,0 +1,8 @@
+src
+tsconfig.json
+*.test.ts
+*.spec.ts
+__tests__
+coverage
+node_modules
+*.log

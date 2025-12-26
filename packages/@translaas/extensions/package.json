@@ -1,0 +1,42 @@
+{
+  "name": "@translaas/extensions",
+  "version": "0.1.0",
+  "description": "Framework integrations and extensions for the Translaas SDK",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:watch": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --passWithNoTests"
+  },
+  "dependencies": {
+    "@translaas/models": "*",
+    "@translaas/client": "*"
+  },
+  "keywords": [
+    "translaas",
+    "translation",
+    "i18n",
+    "extensions",
+    "express",
+    "nextjs"
+  ],
+  "author": "Translaas SDK Contributors",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

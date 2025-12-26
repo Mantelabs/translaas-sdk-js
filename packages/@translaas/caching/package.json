@@ -1,0 +1,40 @@
+{
+  "name": "@translaas/caching",
+  "version": "0.1.0",
+  "description": "In-memory caching abstractions and implementations for the Translaas SDK",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:watch": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --passWithNoTests"
+  },
+  "dependencies": {
+    "@translaas/models": "*"
+  },
+  "keywords": [
+    "translaas",
+    "translation",
+    "i18n",
+    "caching",
+    "cache"
+  ],
+  "author": "Translaas SDK Contributors",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

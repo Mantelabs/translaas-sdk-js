@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": true
+  },
+  "exclude": ["node_modules", "dist", "coverage", "**/*.test.ts", "**/*.spec.ts", "**/__tests__/**"]
+}

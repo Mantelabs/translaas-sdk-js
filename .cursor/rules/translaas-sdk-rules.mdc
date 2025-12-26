@@ -1,0 +1,821 @@
+---
+alwaysApply: false
+---
+# Translaas SDK - Cursor Rules
+
+## Project Context
+
+This is an open-source JavaScript/TypeScript SDK for the Translaas Translation Delivery API SaaS. The backend API is proprietary, but this SDK is open-sourced to allow community contributions and improvements.
+
+## Core Principles
+
+1. **Test-Driven Development (TDD)**: Write tests first, then implement code to make tests pass
+2. **SDK-First Design**: This is a client SDK - prioritize developer experience, ease of use, and clear APIs
+3. **Multi-Environment Support**: Must work seamlessly in Node.js, browsers, and modern JavaScript runtimes
+4. **Open Source Ready**: Code should be clean, well-documented, and welcoming to contributors
+5. **Performance**: Minimize allocations, use async/await properly, optimize for common use cases
+6. **Modularity**: Keep packages focused and dependencies minimal
+7. **TypeScript First**: Write in TypeScript for type safety and better developer experience
+
+## Code Style
+
+### TypeScript/JavaScript Conventions
+
+- Use `async`/`await` for all I/O operations (HTTP calls, cache operations)
+- Prefer `Promise<T>` for async return types
+- Use optional chaining (`?.`) and nullish coalescing (`??`) where appropriate
+- Use `const` for immutable values, `let` for mutable variables
+- Avoid `var` - use `const` or `let` instead
+- Use arrow functions for callbacks and short functions
+- Prefer template literals over string concatenation
+- Use destructuring for object/array access
+- Use `readonly` modifier for immutable properties in classes/interfaces
+
+### Naming Conventions
+
+- **Interfaces**: PascalCase, no `I` prefix (e.g., `TranslaasClient`, `TranslaasOptions`)
+- **Types**: PascalCase (e.g., `CacheMode`, `TranslationGroup`)
+- **Classes**: PascalCase (e.g., `TranslaasClient`)
+- **Functions/Methods**: camelCase, async methods end with `Async` (e.g., `getEntryAsync`)
+- **Variables/Parameters**: camelCase (e.g., `projectId`, `lang`)
+- **Private fields**: camelCase with `_` prefix (e.g., `_httpClient`)
+- **Constants**: UPPER_SNAKE_CASE or PascalCase for exported constants (e.g., `DEFAULT_TIMEOUT`, `LanguageCodes`)
+- **Enums**: PascalCase (e.g., `CacheMode`)
+
+### Code Organization
+
+```typescript
+// Order within a class/file:
+// 1. Imports
+// 2. Type definitions and interfaces
+// 3. Constants
+// 4. Classes/Exports
+//    - Static properties
+//    - Instance properties (public, then private)
+//    - Constructor
+//    - Public methods
+//    - Private methods
+//    - Getters/Setters
+```
+
+## Package Structure
+
+### Monorepo Organization
+
+The SDK uses a monorepo structure with multiple packages:
+
+```
+packages/
+├── @translaas/models/          # DTOs and models (no dependencies)
+├── @translaas/client/           # Core HTTP client
+├── @translaas/caching/          # In-memory caching
+├── @translaas/caching-file/     # File-based caching
+├── @translaas/extensions/       # Framework integrations
+└── @translaas/core/             # Main package (re-exports all)
+```
+
+### Package Dependencies
+
+- **@translaas/models**: No dependencies (pure types/models)
+- **@translaas/client**: Depends on `@translaas/models`
+- **@translaas/caching**: Depends on `@translaas/models`
+- **@translaas/caching-file**: Depends on `@translaas/client`, `@translaas/models`
+- **@translaas/core**: Depends on all packages
+
+### Package.json Management
+
+**CRITICAL**: When files are added or removed, ensure:
+- TypeScript compilation includes all files (check `tsconfig.json` includes)
+- Package exports are updated in `package.json` if adding new entry points
+- Dependencies are correctly listed in `package.json`
+- Peer dependencies are declared for framework integrations
+
+#### File Management Rules
+
+- **When creating a new file**: Ensure it's included in `tsconfig.json` includes/excludes
+- **When deleting a file**: Remove exports if it was exported from `index.ts`
+- **When creating a new package**: Add to monorepo workspace configuration
+- **When removing a package**: Remove from workspace and update dependent packages
+
+#### Verification
+
+After adding or removing files/packages:
+- Verify the package builds successfully: `npm run build` (or `npm run build --workspace=<package>`)
+- Verify TypeScript compiles: `npm run type-check`
+- Ensure all packages in workspace are properly referenced
+- Ensure all test packages reference their corresponding source packages
+
+## Architecture Guidelines
+
+### Package Responsibilities
+
+- **@translaas/models**: DTOs only - no business logic, no dependencies
+- **@translaas/client**: Core HTTP client - minimal dependencies, no framework abstractions
+- **@translaas/caching**: Caching abstractions and implementations - depends on Models
+- **@translaas/caching-file**: File-based caching - depends on Client and Models
+- **@translaas/extensions**: Framework integrations (Express, Next.js, etc.) - depends on all other packages
+- **@translaas/core**: Main package that re-exports everything - depends on all packages
+
+### Dependency Rules
+
+- **Never** add dependencies without strong justification
+- Prefer built-in Node.js APIs over third-party libraries
+- Use native `fetch` API (Node.js 18+) or provide polyfill for older versions
+- Use `node-fetch` only if native fetch is unavailable
+- Keep Models package dependency-free
+- Use `@types/*` packages for TypeScript definitions
+
+### API Design
+
+- **Public APIs**: Must be stable, well-documented, and version-friendly
+- **Internal APIs**: Use `_` prefix or `internal` namespace, document with JSDoc comments
+- **Async Methods**: All I/O operations must be async
+- **Cancellation**: Support `AbortSignal` in all async methods
+- **Error Handling**: Use custom error classes (`TranslaasException`) for API errors
+- **Nullability**: Be explicit about nullable types (`string | null`, `string?`)
+
+### Example Public API Pattern
+
+```typescript
+/**
+ * Gets a single translation entry.
+ * @param group - The translation group name
+ * @param entry - The translation entry key
+ * @param lang - The language code (e.g., "en", "fr")
+ * @param number - Optional number for pluralization
+ * @param cancellationToken - Cancellation token (AbortSignal)
+ * @returns The translated text
+ * @throws {TranslaasException} Thrown when the API returns an error
+ * @example
+ * ```typescript
+ * const translation = await client.getEntryAsync("ui", "button.save", "en");
+ * ```
+ */
+async getEntryAsync(
+    group: string,
+    entry: string,
+    lang: string,
+    number?: number,
+    cancellationToken?: AbortSignal
+): Promise<string>;
+```
+
+## TypeScript Guidelines
+
+### Type Safety
+
+- Use strict TypeScript settings (`strict: true`, `noImplicitAny: true`)
+- Prefer interfaces over type aliases for object shapes
+- Use `type` for unions, intersections, and complex types
+- Avoid `any` - use `unknown` if type is truly unknown
+- Use type guards for runtime type checking
+- Use const assertions (`as const`) for literal types
+
+### Type Definitions
+
+```typescript
+// Interface for configuration
+export interface TranslaasOptions {
+  apiKey: string;
+  baseUrl: string;
+  cacheMode?: CacheMode;
+  timeout?: number; // milliseconds
+}
+
+// Enum for cache modes
+export enum CacheMode {
+  None = 0,
+  Entry = 1,
+  Group = 2,
+  Project = 3,
+}
+
+// Type for language codes
+export type LanguageCode = string;
+
+// Const object for language code constants
+export const LanguageCodes = {
+  English: 'en',
+  French: 'fr',
+  Spanish: 'es',
+  // ...
+} as const;
+```
+
+### Module System
+
+- Use ES modules (`import`/`export`) - not CommonJS (`require`/`module.exports`)
+- Use `export type` for type-only exports
+- Provide both ESM and CJS builds if needed for compatibility
+- Use `package.json` `exports` field for modern package resolution
+
+## Error Handling
+
+### Error Types
+
+- **TranslaasException**: Base error class for all Translaas API errors
+- **TranslaasApiException**: HTTP errors from the API (status codes)
+- **TranslaasConfigurationException**: Configuration/setup errors
+- Use native `Error` for network-level errors
+
+### Error Handling Pattern
+
+```typescript
+try {
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'X-Api-Key': this.options.apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody),
+    signal: cancellationToken,
+  });
+
+  if (!response.ok) {
+    throw new TranslaasApiException(
+      `API request failed: ${response.statusText}`,
+      response.status
+    );
+  }
+
+  return await response.text();
+} catch (error) {
+  if (error instanceof TranslaasApiException) {
+    throw error;
+  }
+  throw new TranslaasApiException(
+    `Failed to retrieve translation: ${error.message}`,
+    undefined,
+    error
+  );
+}
+```
+
+## Serialization
+
+### JSON Handling
+
+- Use native `JSON.parse()` and `JSON.stringify()`
+- Use `JSON.parse()` with type assertions or validation
+- Consider using libraries like `zod` for runtime validation if needed
+- Keep DTOs simple - no complex inheritance hierarchies
+- Use property decorators or JSDoc for API field mapping if needed
+
+### Example DTO
+
+```typescript
+export interface GetTranslationRequest {
+  group: string;
+  entry: string;
+  lang: string;
+  n?: number; // Pluralization number
+  [key: string]: string | number | undefined; // Named parameters
+}
+```
+
+## Caching
+
+### Cache Key Strategy
+
+- Use consistent, predictable cache keys
+- Include all relevant parameters in cache keys
+- Consider cache key collisions across projects/groups
+- Use URL-safe characters in cache keys
+
+### Cache Implementation
+
+- Default to `Map` or `WeakMap` for in-memory caching
+- Support custom cache providers via `ITranslaasCacheProvider` interface
+- Respect cache expiration settings
+- Handle cache failures gracefully (fallback to API)
+- Use `Map` for Node.js, consider `Map` or `WeakMap` for browser
+
+## HTTP Client
+
+### Configuration
+
+- Use native `fetch` API (Node.js 18+) or provide polyfill
+- Support configurable timeouts via `AbortController`
+- Support retry policies (consider libraries like `p-retry` if needed)
+- Set appropriate default headers (`X-Api-Key`, `Content-Type`, `Accept`)
+
+### Request/Response Handling
+
+- All endpoints use GET with JSON request body (unusual but matches API)
+- Prefer raw text responses when possible (for single entries)
+- Support JSON fallback mode
+- Handle HTTP status codes appropriately
+- Include request/response logging hooks (for debugging)
+
+## Documentation
+
+### JSDoc Comments
+
+- **Required** for all public APIs
+- Include parameter descriptions with `@param`
+- Include return value descriptions with `@returns`
+- Include exception documentation with `@throws`
+- Include usage examples with `@example`
+- Use `@see` for related APIs
+
+### Example Documentation
+
+```typescript
+/**
+ * Gets all translations for a translation group.
+ * @param project - The project identifier
+ * @param group - The translation group name
+ * @param lang - The language code (e.g., "en", "fr")
+ * @param format - Optional format parameter (defaults to undefined)
+ * @param cancellationToken - Cancellation token (AbortSignal)
+ * @returns A TranslationGroup containing all entries for the group
+ * @throws {TranslaasApiException} Thrown when the API returns an error
+ * @example
+ * ```typescript
+ * const group = await client.getGroupAsync("my-project", "ui", "en");
+ * for (const [key, value] of Object.entries(group.entries)) {
+ *   console.log(`${key}: ${value}`);
+ * }
+ * ```
+ */
+async getGroupAsync(
+  project: string,
+  group: string,
+  lang: string,
+  format?: string,
+  cancellationToken?: AbortSignal
+): Promise<TranslationGroup>;
+```
+
+## Test-Driven Development (TDD)
+
+### TDD Workflow
+
+Follow the **Red-Green-Refactor** cycle:
+
+1. **Red**: Write a failing test that describes the desired behavior
+2. **Green**: Write the minimum code necessary to make the test pass
+3. **Refactor**: Improve the code while keeping tests green
+
+### TDD Principles
+
+- **Write tests first** - Tests define the API contract and expected behavior
+- **One test at a time** - Focus on a single behavior per test
+- **Test behavior, not implementation** - Tests should verify outcomes, not internal details
+- **Keep tests simple** - Each test should verify one thing
+- **Refactor with confidence** - Tests provide safety net for refactoring
+
+### TDD Workflow Example
+
+```typescript
+// 1. RED: Write failing test
+describe('TranslaasClient', () => {
+  it('should return translation when entry exists', async () => {
+    // Arrange
+    const client = createClient();
+    
+    // Act
+    const result = await client.getEntryAsync('ui', 'button.save', 'en');
+    
+    // Assert
+    expect(result).toBe('Save');
+  });
+});
+
+// 2. GREEN: Implement minimum code to pass
+async getEntryAsync(group: string, entry: string, lang: string): Promise<string> {
+  // Minimal implementation
+  return 'Save'; // Hard-coded to make test pass
+}
+
+// 3. REFACTOR: Improve implementation while keeping tests green
+async getEntryAsync(group: string, entry: string, lang: string): Promise<string> {
+  const requestBody = { group, entry, lang };
+  const response = await fetch(`${this.baseUrl}/api/translations/text`, {
+    method: 'GET',
+    headers: { 'X-Api-Key': this.apiKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody),
+  });
+  if (!response.ok) {
+    throw new TranslaasApiException(`API error: ${response.statusText}`, response.status);
+  }
+  return await response.text();
+}
+```
+
+## Test Project Structure
+
+### Directory Organization
+
+All test files should be placed alongside source files or in a `__tests__` directory:
+
+```
+packages/
+├── @translaas/client/
+│   ├── src/
+│   │   ├── TranslaasClient.ts
+│   │   └── __tests__/
+│   │       └── TranslaasClient.test.ts
+│   └── package.json
+```
+
+Or use a separate `tests/` directory at the package root:
+
+```
+packages/
+├── @translaas/client/
+│   ├── src/
+│   │   └── TranslaasClient.ts
+│   ├── tests/
+│   │   └── TranslaasClient.test.ts
+│   └── package.json
+```
+
+### Test File Naming
+
+- Test files: `*.test.ts` or `*.spec.ts`
+- Example: `TranslaasClient.test.ts` for `TranslaasClient.ts`
+
+### Test Configuration
+
+Each package should:
+- Use Jest or Vitest as the testing framework
+- Use `@types/jest` or similar for TypeScript support
+- Use mocking libraries (Jest mocks, `sinon`, or `nock` for HTTP)
+- Use assertion libraries (Jest assertions, `chai`, or `expect`)
+
+### Example Test Configuration (Jest)
+
+```json
+{
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/src", "<rootDir>/tests"],
+    "testMatch": ["**/__tests__/**/*.test.ts", "**/?(*.)+(spec|test).ts"],
+    "collectCoverageFrom": ["src/**/*.ts", "!src/**/*.d.ts"]
+  }
+}
+```
+
+## Testing Guidelines
+
+### Test Coverage Requirements
+
+- **Every public API** must have tests
+- **Every package** must have tests
+- Aim for high code coverage (80%+ for critical paths)
+- Test both success and failure scenarios
+
+### Test Categories
+
+1. **Unit Tests**: Test individual components in isolation
+2. **Integration Tests**: Test component interactions (HTTP client, caching)
+3. **Environment Compatibility Tests**: Verify behavior in Node.js and browser
+
+### Test Naming Conventions
+
+Use descriptive test names following the pattern:
+```
+{MethodName}_{Scenario}_{ExpectedBehavior}
+```
+
+Examples:
+- `getEntryAsync_returnsTranslation_whenEntryExists`
+- `getEntryAsync_throwsException_whenApiReturnsError`
+- `getGroupAsync_usesCache_whenCacheEnabled`
+
+### Test Organization
+
+Organize tests to mirror source structure:
+
+```
+@translaas/client/
+├── src/
+│   ├── TranslaasClient.ts
+│   └── HttpRequestBuilder.ts
+└── tests/
+    ├── TranslaasClient.test.ts
+    └── HttpRequestBuilder.test.ts
+```
+
+### Test Patterns
+
+#### Arrange-Act-Assert (AAA)
+
+```typescript
+describe('TranslaasClient', () => {
+  it('should return translation when entry exists', async () => {
+    // Arrange
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => 'Save',
+    });
+    global.fetch = mockFetch;
+    const client = new TranslaasClient(options);
+    
+    // Act
+    const result = await client.getEntryAsync('ui', 'button.save', 'en');
+    
+    // Assert
+    expect(result).toBe('Save');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+#### Testing Async Code
+
+```typescript
+it('should throw exception when request fails', async () => {
+  // Arrange
+  const client = createClientWithFailingHttpClient();
+  
+  // Act & Assert
+  await expect(
+    client.getEntryAsync('ui', 'button.save', 'en')
+  ).rejects.toThrow(TranslaasApiException);
+});
+```
+
+### Mocking Guidelines
+
+- **Mock external dependencies**: HTTP clients (fetch), cache providers, file system
+- **Don't mock what you're testing**: Test the actual implementation
+- **Use test doubles**: Create test implementations for interfaces when appropriate
+- **Verify interactions**: Use mocks to verify method calls and parameters
+
+### Test Data
+
+- Use **test fixtures** for common test data
+- Create **test builders** for complex objects
+- Use **test data generators** for varied inputs
+- Keep test data **realistic** but **minimal**
+
+### Example Test Fixture
+
+```typescript
+export class TranslaasClientTestFixture {
+  public mockFetch: jest.Mock;
+  public options: TranslaasOptions;
+  
+  constructor() {
+    this.mockFetch = jest.fn();
+    this.options = {
+      apiKey: 'test-api-key',
+      baseUrl: 'https://api.test.com',
+    };
+  }
+  
+  createClient(): TranslaasClient {
+    global.fetch = this.mockFetch;
+    return new TranslaasClient(this.options);
+  }
+}
+```
+
+### Testing Error Scenarios
+
+Always test:
+- API errors (400, 404, 500, etc.)
+- Network failures
+- Timeout scenarios
+- Invalid configuration
+- Null/empty parameters
+- Edge cases (empty responses, malformed JSON)
+
+### Testing Caching
+
+Test caching behavior:
+- Cache hits (return cached value)
+- Cache misses (fetch from API)
+- Cache expiration
+- Cache invalidation
+- Cache key generation
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests for specific package
+npm test --workspace=@translaas/client
+
+# Run tests with coverage
+npm test -- --coverage
+
+# Run tests in watch mode
+npm test -- --watch
+```
+
+## Testing Considerations
+
+- **TDD is mandatory** - Write tests before implementation
+- **Every package must have tests** - No package is complete without tests
+- **Test all public APIs** - Every public method needs test coverage
+- **Test error scenarios** - API errors, network failures, timeouts
+- **Test caching behavior** - Verify cache hits, misses, expiration
+- **Test environment compatibility** - Ensure code works in Node.js and browser
+- **Use test doubles/mocks** - Mock HTTP client, cache providers
+- **Test configuration validation** - Verify options are validated correctly
+- **Test edge cases** - Null inputs, empty strings, boundary conditions
+
+## Performance Guidelines
+
+### Memory Management
+
+- Minimize object allocations in hot paths
+- Use object pooling for frequently created objects if needed
+- Prefer `Map` over objects for key-value lookups when keys are dynamic
+- Reuse objects where safe (e.g., request options)
+
+### Async/Await
+
+- Use `async`/`await` for all I/O operations
+- Avoid blocking async code (no `.then().catch()` chains if using async/await)
+- Use `Promise.all()` for parallel operations
+- Use `Promise.allSettled()` when you need all results regardless of failures
+- Handle cancellation with `AbortSignal`
+
+### Caching
+
+- Cache at the appropriate level (Entry, Group, or Project)
+- Use sliding expiration for frequently accessed items
+- Use absolute expiration for stable data
+- Consider cache size limits (LRU eviction)
+
+## Open Source Considerations
+
+### Code Quality
+
+- Code should be self-documenting with clear naming
+- Add comments for non-obvious logic or workarounds
+- Keep functions focused and single-purpose
+- Refactor when code becomes complex
+
+### Community-Friendly
+
+- Use clear, descriptive variable names (avoid abbreviations)
+- Prefer explicit code over clever one-liners
+- Add examples and documentation
+- Make error messages helpful and actionable
+
+### Versioning
+
+- Follow Semantic Versioning (SemVer)
+- Document breaking changes clearly
+- Provide migration guides for major versions
+- Maintain backward compatibility when possible
+
+## Configuration
+
+### Options Pattern
+
+- Use interfaces for configuration options
+- Validate configuration on initialization
+- Provide sensible defaults
+- Document all configuration options
+
+### Example Options
+
+```typescript
+export interface TranslaasOptions {
+  apiKey: string; // Required
+  baseUrl: string; // Required
+  cacheMode?: CacheMode; // Optional, defaults to CacheMode.None
+  timeout?: number; // Optional, milliseconds
+  cacheAbsoluteExpiration?: number; // Optional, milliseconds
+  cacheSlidingExpiration?: number; // Optional, milliseconds
+}
+```
+
+## Git Conventions
+
+### Commit Messages
+
+Use conventional commits:
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation changes
+- `refactor:` Code refactoring
+- `test:` Test additions/changes
+- `chore:` Maintenance tasks
+- `build:` Build system changes
+- `ci:` CI/CD changes
+
+### Branch Naming
+
+- `feature/description` - New features
+- `fix/description` - Bug fixes
+- `docs/description` - Documentation updates
+- `refactor/description` - Refactoring
+
+## Code Review Checklist
+
+Before submitting code:
+- [ ] **TDD followed** - Tests written before implementation
+- [ ] **Test file created** - Test file exists for new code
+- [ ] **All tests pass** - All tests pass (`npm test`)
+- [ ] **Test coverage adequate** - Public APIs have test coverage
+- [ ] **TypeScript compiles** - No type errors (`npm run type-check`)
+- [ ] **Package builds** - Package builds successfully (`npm run build`)
+- [ ] **JSDoc comments added** - Public APIs have JSDoc documentation
+- [ ] **No unnecessary dependencies** - Dependencies are justified
+- [ ] **Error handling is appropriate** - Errors are handled correctly
+- [ ] **Async/await used correctly** - No blocking async code
+- [ ] **Nullability is explicit** - Types are explicit about nullability
+- [ ] **Code follows naming conventions** - Follows TypeScript/JavaScript conventions
+- [ ] **Tests cover success and failure scenarios** - Both paths tested
+- [ ] **Tests use proper mocking** - Mocks are used appropriately
+- [ ] **README/docs updated** - Documentation updated if needed
+- [ ] **Linting passes** - Code passes ESLint/Prettier checks
+
+## Common Patterns
+
+### HTTP Request Pattern
+
+```typescript
+const response = await fetch(`${this.options.baseUrl}/api/translations/text`, {
+  method: 'GET',
+  headers: {
+    'X-Api-Key': this.options.apiKey,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(requestBody),
+  signal: cancellationToken,
+});
+
+if (!response.ok) {
+  throw new TranslaasApiException(
+    `API request failed: ${response.statusText}`,
+    response.status
+  );
+}
+
+return await response.text();
+```
+
+### Caching Pattern
+
+```typescript
+if (this.options.cacheMode !== CacheMode.None) {
+  const cacheKey = this.buildCacheKey(project, group, lang);
+  const cached = this.cacheProvider.get<TranslationGroup>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+}
+
+const result = await this.fetchFromApi(project, group, lang);
+
+if (this.options.cacheMode !== CacheMode.None) {
+  this.cacheProvider.set(cacheKey, result, {
+    absoluteExpiration: this.options.cacheAbsoluteExpiration,
+    slidingExpiration: this.options.cacheSlidingExpiration,
+  });
+}
+
+return result;
+```
+
+## Prohibited Patterns
+
+- ❌ **Don't write code without tests first** - TDD is mandatory
+- ❌ **Don't skip test files** - Every module must have tests
+- ❌ **Don't use `any`** - Use `unknown` or proper types
+- ❌ **Don't use CommonJS** - Use ES modules (`import`/`export`)
+- ❌ **Don't block async code** - Use `async`/`await`, not `.then().catch()` chains
+- ❌ **Don't catch and swallow errors silently** - Always handle errors appropriately
+- ❌ **Don't add dependencies without justification** - Minimize dependencies
+- ❌ **Don't ignore cancellation tokens** - Support `AbortSignal` in async methods
+- ❌ **Don't create public APIs without JSDoc** - Document all public APIs
+- ❌ **Don't commit code with failing tests** - All tests must pass
+- ❌ **Don't skip testing error scenarios** - Test both success and failure paths
+- ❌ **Don't use `var`** - Use `const` or `let`
+- ❌ **Don't use `==` or `!=`** - Use `===` and `!==` for strict equality
+
+## Environment Compatibility
+
+### Node.js Support
+
+- Support Node.js 18+ (native fetch API)
+- Provide polyfill or alternative for older Node.js versions if needed
+- Test on LTS versions of Node.js
+
+### Browser Support
+
+- Support modern browsers (ES2020+)
+- Use polyfills for older browsers if needed
+- Test in major browsers (Chrome, Firefox, Safari, Edge)
+
+### Module Formats
+
+- Provide ES modules (ESM) as primary format
+- Consider CommonJS (CJS) builds for compatibility if needed
+- Use `package.json` `exports` field for modern resolution
+
+## Remember
+
+This SDK is the public face of Translaas for JavaScript/TypeScript developers. Every API, every error message, and every piece of documentation represents the Translaas brand. Make it excellent.

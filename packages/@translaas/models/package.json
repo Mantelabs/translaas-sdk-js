@@ -1,0 +1,37 @@
+{
+  "name": "@translaas/models",
+  "version": "0.1.0",
+  "description": "Data transfer objects (DTOs) and models for the Translaas Translation Delivery API",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:watch": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --passWithNoTests"
+  },
+  "keywords": [
+    "translaas",
+    "translation",
+    "i18n",
+    "models",
+    "dto"
+  ],
+  "author": "Translaas SDK Contributors",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

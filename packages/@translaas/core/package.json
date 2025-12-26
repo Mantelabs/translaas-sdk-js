@@ -1,0 +1,46 @@
+{
+  "name": "@translaas/core",
+  "version": "0.1.0",
+  "description": "Main package for the Translaas SDK - re-exports all packages",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:watch": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --passWithNoTests"
+  },
+  "dependencies": {
+    "@translaas/models": "*",
+    "@translaas/client": "*",
+    "@translaas/caching": "*",
+    "@translaas/caching-file": "*",
+    "@translaas/extensions": "*"
+  },
+  "keywords": [
+    "translaas",
+    "translation",
+    "i18n",
+    "localization",
+    "sdk",
+    "typescript",
+    "javascript"
+  ],
+  "author": "Translaas SDK Contributors",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

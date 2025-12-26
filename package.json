@@ -1,0 +1,60 @@
+{
+  "name": "@translaas/sdk",
+  "version": "0.1.0",
+  "description": "A strongly-typed, performant, and modular JavaScript/TypeScript SDK for consuming the Translaas Translation Delivery API",
+  "private": true,
+  "workspaces": [
+    "packages/@translaas/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:watch": "npm run build:watch --workspaces",
+    "test": "npm run test --workspaces",
+    "test:watch": "npm run test:watch --workspaces",
+    "test:coverage": "npm run test:coverage --workspaces",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "type-check": "tsc --noEmit",
+    "clean": "npm run clean --workspaces && rm -rf node_modules dist coverage .turbo",
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "translaas",
+    "translation",
+    "i18n",
+    "localization",
+    "sdk",
+    "typescript",
+    "javascript"
+  ],
+  "author": "Translaas SDK Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/acuencadev/translaas-sdk-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/acuencadev/translaas-sdk-js/issues"
+  },
+  "homepage": "https://github.com/acuencadev/translaas-sdk-js#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitest/ui": "^4.0.16",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.1.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.2",
+    "vitest": "^4.0.16"
+  }
+}

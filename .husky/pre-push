@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Build packages before running tests to ensure workspace dependencies are available
+npm run build
+
 npm test

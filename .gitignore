@@ -1,9 +1,12 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # compiled output
+# Note: packages/*/dist folders should be committed for npm publishing
 /dist
 /tmp
 /out-tsc
+# Exclude root-level dist, but keep package dist folders for publishing
+!/packages/**/dist
 
 # Runtime data
 pids
@@ -68,6 +71,9 @@ jspm_packages/
 # Optional eslint cache
 .eslintcache
 
+# TypeScript incremental compilation cache
+*.tsbuildinfo
+
 # Optional REPL history
 .node_repl_history
 
@@ -89,3 +95,5 @@ lerna-debug.log
 # System Files
 .DS_Store
 Thumbs.db
+
+docs

@@ -1,3 +1,5 @@
+import type { TranslationGroup, TranslationProject, ProjectLocales } from '@translaas/models';
+
 /**
  * Translaas client interface
  */
@@ -17,14 +19,14 @@ export interface ITranslaasClient {
     lang: string,
     format?: string,
     cancellationToken?: AbortSignal
-  ): Promise<any>;
+  ): Promise<TranslationGroup>;
 
   getProjectAsync(
     project: string,
     lang: string,
     format?: string,
     cancellationToken?: AbortSignal
-  ): Promise<any>;
+  ): Promise<TranslationProject>;
 
-  getProjectLocalesAsync(project: string, cancellationToken?: AbortSignal): Promise<any>;
+  getProjectLocalesAsync(project: string, cancellationToken?: AbortSignal): Promise<ProjectLocales>;
 }

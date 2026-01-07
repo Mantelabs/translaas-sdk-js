@@ -7,7 +7,13 @@
     "packages/@translaas/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build:models && npm run build:client && npm run build:caching && npm run build:caching-file && npm run build:extensions && npm run build:core",
+    "build:models": "npm run build --workspace=@translaas/models",
+    "build:client": "npm run build --workspace=@translaas/client",
+    "build:caching": "npm run build --workspace=@translaas/caching",
+    "build:caching-file": "npm run build --workspace=@translaas/caching-file",
+    "build:extensions": "npm run build --workspace=@translaas/extensions",
+    "build:core": "npm run build --workspace=@translaas/core",
     "build:watch": "npm run build:watch --workspaces",
     "test": "npm run test --workspaces",
     "test:watch": "npm run test:watch --workspaces",

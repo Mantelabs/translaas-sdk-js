@@ -4,3 +4,4 @@ export * from './errors';
 export * from './requests';
 export * from './PluralResolver';
 export * from './ParameterReplacer';
+export * from './EnvironmentDetector';

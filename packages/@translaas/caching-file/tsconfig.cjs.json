@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "./dist-cjs",
+    "rootDir": "./src",
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "dist-cjs", "**/*.test.ts", "**/*.spec.ts"],
+  "references": [
+    {
+      "path": "../models"
+    },
+    {
+      "path": "../client"
+    }
+  ]
+}

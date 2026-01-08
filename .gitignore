@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 packages/**/dist
+packages/**/dist-cjs
 
 # Runtime data
 pids

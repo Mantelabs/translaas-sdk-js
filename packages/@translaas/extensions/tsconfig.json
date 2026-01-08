@@ -3,16 +3,14 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "composite": true
+    "composite": true,
+    "lib": ["ES2020", "DOM"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
   "references": [
     {
       "path": "../models"
-    },
-    {
-      "path": "../client"
     }
   ]
 }

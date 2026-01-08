@@ -129,6 +129,9 @@ export interface TranslaasOptions {
   cacheSlidingExpiration?: number; // milliseconds
   offlineCache?: OfflineCacheOptions;
   defaultLanguage?: string;
+  // Language resolver for automatic language detection
+  // Type: ILanguageResolver from @translaas/extensions
+  languageResolver?: any;
 }
 
 /**

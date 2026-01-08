@@ -1,3 +1,5 @@
+import { PluralResolver } from './PluralResolver';
+
 /**
  * Language codes constants (ISO 639-1)
  */
@@ -228,6 +230,50 @@ export class TranslationGroup {
       return null;
     }
     return forms[category] ?? null;
+  }
+
+  /**
+   * Gets the appropriate plural form for an entry based on a number and language code.
+   * This method automatically resolves the plural category using PluralResolver and retrieves
+   * the corresponding translation. Falls back to "other" category if the resolved category
+   * is not available.
+   *
+   * @param key Entry key
+   * @param number The number to determine plural category for
+   * @param lang Language code (e.g., "en", "fr", "ru", "ar") or locale code (e.g., "en-US", "fr-CA")
+   * @returns Plural form string, or null if entry doesn't have plural forms
+   *
+   * @example
+   * ```typescript
+   * const group = new TranslationGroup({
+   *   item: {
+   *     [PluralCategory.One]: 'one item',
+   *     [PluralCategory.Other]: '{count} items',
+   *   },
+   * });
+   *
+   * group.getPluralFormForNumber('item', 1, 'en'); // 'one item'
+   * group.getPluralFormForNumber('item', 5, 'en'); // '{count} items'
+   * group.getPluralFormForNumber('item', 2, 'ru'); // Uses resolved category (few/many/other)
+   * ```
+   */
+  getPluralFormForNumber(key: string, number: number, lang: string): string | null {
+    const forms = this.getPluralForms(key);
+    if (!forms) {
+      return null;
+    }
+
+    const category = PluralResolver.resolveCategory(number, lang);
+
+    // Try to get the form for the resolved category
+    const form = forms[category];
+    if (form) {
+      return form;
+    }
+
+    // Fallback to "other" if the resolved category is not available
+    // This is a common pattern in i18n where not all categories are always provided
+    return forms[PluralCategory.Other] ?? null;
   }
 }
 

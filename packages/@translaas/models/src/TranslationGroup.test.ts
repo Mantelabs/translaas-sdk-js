@@ -145,6 +145,115 @@ describe('TranslationGroup', () => {
     });
   });
 
+  describe('getPluralFormForNumber', () => {
+    it('should return correct form for English (one vs other)', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.One]: 'one item',
+          [PluralCategory.Other]: '{count} items',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', 1, 'en')).toBe('one item');
+      expect(group.getPluralFormForNumber('item', 0, 'en')).toBe('{count} items');
+      expect(group.getPluralFormForNumber('item', 2, 'en')).toBe('{count} items');
+      expect(group.getPluralFormForNumber('item', 5, 'en')).toBe('{count} items');
+    });
+
+    it('should return correct form for French (zero and one)', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.One]: 'un élément',
+          [PluralCategory.Other]: '{count} éléments',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', 0, 'fr')).toBe('un élément');
+      expect(group.getPluralFormForNumber('item', 1, 'fr')).toBe('un élément');
+      expect(group.getPluralFormForNumber('item', 2, 'fr')).toBe('{count} éléments');
+    });
+
+    it('should return correct form for Russian (one, few, many)', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.One]: '1 элемент',
+          [PluralCategory.Few]: '{count} элемента',
+          [PluralCategory.Many]: '{count} элементов',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', 1, 'ru')).toBe('1 элемент');
+      expect(group.getPluralFormForNumber('item', 21, 'ru')).toBe('1 элемент');
+      expect(group.getPluralFormForNumber('item', 2, 'ru')).toBe('{count} элемента');
+      expect(group.getPluralFormForNumber('item', 3, 'ru')).toBe('{count} элемента');
+      expect(group.getPluralFormForNumber('item', 4, 'ru')).toBe('{count} элемента');
+      expect(group.getPluralFormForNumber('item', 5, 'ru')).toBe('{count} элементов');
+      expect(group.getPluralFormForNumber('item', 0, 'ru')).toBe('{count} элементов');
+    });
+
+    it('should return correct form for Arabic (zero, one, two, few, many, other)', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.Zero]: 'لا عناصر',
+          [PluralCategory.One]: 'عنصر واحد',
+          [PluralCategory.Two]: 'عنصران',
+          [PluralCategory.Few]: '{count} عناصر',
+          [PluralCategory.Many]: '{count} عنصر',
+          [PluralCategory.Other]: '{count} عنصر',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', 0, 'ar')).toBe('لا عناصر');
+      expect(group.getPluralFormForNumber('item', 1, 'ar')).toBe('عنصر واحد');
+      expect(group.getPluralFormForNumber('item', 2, 'ar')).toBe('عنصران');
+      expect(group.getPluralFormForNumber('item', 3, 'ar')).toBe('{count} عناصر');
+      expect(group.getPluralFormForNumber('item', 10, 'ar')).toBe('{count} عناصر');
+      expect(group.getPluralFormForNumber('item', 11, 'ar')).toBe('{count} عنصر');
+      expect(group.getPluralFormForNumber('item', 100, 'ar')).toBe('{count} عنصر');
+    });
+
+    it('should fallback to Other category if resolved category is not available', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.Other]: '{count} items',
+        },
+      });
+      // Even though Russian would resolve to "few" or "many", if only "other" is available, use it
+      expect(group.getPluralFormForNumber('item', 2, 'ru')).toBe('{count} items');
+      expect(group.getPluralFormForNumber('item', 5, 'ru')).toBe('{count} items');
+    });
+
+    it('should handle locale codes', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.One]: 'one item',
+          [PluralCategory.Other]: '{count} items',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', 1, 'en-US')).toBe('one item');
+      expect(group.getPluralFormForNumber('item', 2, 'en-GB')).toBe('{count} items');
+    });
+
+    it('should return null for simple string entry', () => {
+      const group = new TranslationGroup({
+        welcome: 'Welcome',
+      });
+      expect(group.getPluralFormForNumber('welcome', 1, 'en')).toBeNull();
+    });
+
+    it('should return null for non-existent entry', () => {
+      const group = new TranslationGroup();
+      expect(group.getPluralFormForNumber('nonexistent', 1, 'en')).toBeNull();
+    });
+
+    it('should handle negative numbers', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.One]: 'one item',
+          [PluralCategory.Other]: '{count} items',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', -1, 'en')).toBe('one item');
+      expect(group.getPluralFormForNumber('item', -2, 'en')).toBe('{count} items');
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle mixed entries (strings and plural forms)', () => {
       const group = new TranslationGroup({

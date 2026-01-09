@@ -16,6 +16,12 @@ export default defineConfig({
         '**/*.test.{ts,js}',
         '**/*.spec.{ts,js}',
       ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
     },
     include: ['**/*.test.ts', '**/*.spec.ts', '**/__tests__/**/*.ts'],
     exclude: ['node_modules', 'dist', 'coverage'],

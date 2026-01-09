@@ -88,86 +88,388 @@ export const LanguageCodes = {
 export type LanguageCode = (typeof LanguageCodes)[keyof typeof LanguageCodes];
 
 /**
- * Cache modes
+ * Cache modes for translation entries.
+ *
+ * Determines the granularity of caching:
+ * - {@link CacheMode.None}: No caching (default)
+ * - {@link CacheMode.Entry}: Cache individual translation entries
+ * - {@link CacheMode.Group}: Cache entire translation groups
+ * - {@link CacheMode.Project}: Cache entire translation projects (most efficient)
+ *
+ * @example
+ * ```typescript
+ * const options: TranslaasOptions = {
+ *   apiKey: 'key',
+ *   baseUrl: 'https://api.translaas.com',
+ *   cacheMode: CacheMode.Group // Cache entire groups
+ * };
+ * ```
  */
 export enum CacheMode {
+  /** No caching - all requests go to the API */
   None = 0,
+  /** Cache individual translation entries */
   Entry = 1,
+  /** Cache entire translation groups */
   Group = 2,
+  /** Cache entire translation projects (most efficient) */
   Project = 3,
 }
 
 /**
- * Offline fallback modes
+ * Offline fallback modes for cache behavior.
+ *
+ * Determines how the SDK handles API availability and cache usage:
+ * - {@link OfflineFallbackMode.CacheFirst}: Check cache first, then API (fastest, may serve stale data)
+ * - {@link OfflineFallbackMode.ApiFirst}: Check API first, fallback to cache on failure (default, ensures freshness)
+ * - {@link OfflineFallbackMode.CacheOnly}: Only use cache, never call API (offline mode)
+ * - {@link OfflineFallbackMode.ApiOnlyWithBackup}: Use API, but save responses to cache (backup for future offline use)
+ *
+ * @example
+ * ```typescript
+ * const offlineCache: OfflineCacheOptions = {
+ *   enabled: true,
+ *   fallbackMode: OfflineFallbackMode.ApiFirst // Try API first, use cache if API fails
+ * };
+ * ```
  */
 export enum OfflineFallbackMode {
+  /** Check cache first, then API (fastest, may serve stale data) */
   CacheFirst = 0,
+  /** Check API first, fallback to cache on failure (default, ensures freshness) */
   ApiFirst = 1,
+  /** Only use cache, never call API (offline mode) */
   CacheOnly = 2,
+  /** Use API, but save responses to cache (backup for future offline use) */
   ApiOnlyWithBackup = 3,
 }
 
 /**
- * Plural categories (CLDR)
+ * Plural categories based on CLDR (Unicode Common Locale Data Repository) rules.
+ *
+ * Used for pluralization of translation entries. The appropriate category is determined
+ * by the {@link PluralResolver} based on the number and language code.
+ *
+ * Categories:
+ * - {@link PluralCategory.Zero}: Zero quantity (e.g., Arabic: 0)
+ * - {@link PluralCategory.One}: Singular (e.g., English: 1)
+ * - {@link PluralCategory.Two}: Dual (e.g., Arabic: 2)
+ * - {@link PluralCategory.Few}: Few items (e.g., Russian: 2-4)
+ * - {@link PluralCategory.Many}: Many items (e.g., Russian: 5+)
+ * - {@link PluralCategory.Other}: Default/other (fallback for all languages)
+ *
+ * @example
+ * ```typescript
+ * const group = new TranslationGroup({
+ *   items: {
+ *     [PluralCategory.One]: 'one item',
+ *     [PluralCategory.Other]: '{count} items'
+ *   }
+ * });
+ *
+ * const text = group.getPluralFormForNumber('items', 1, 'en'); // 'one item'
+ * const text2 = group.getPluralFormForNumber('items', 5, 'en'); // '5 items'
+ * ```
+ *
+ * @see {@link PluralResolver} for determining the correct category
  */
 export enum PluralCategory {
+  /** Zero quantity (e.g., Arabic: 0) */
   Zero = 'zero',
+  /** Singular (e.g., English: 1) */
   One = 'one',
+  /** Dual (e.g., Arabic: 2) */
   Two = 'two',
+  /** Few items (e.g., Russian: 2-4) */
   Few = 'few',
+  /** Many items (e.g., Russian: 5+) */
   Many = 'many',
+  /** Default/other (fallback for all languages) */
   Other = 'other',
 }
 
 /**
- * Translaas options configuration
+ * Translaas SDK configuration options.
+ *
+ * This interface defines all configuration options for the Translaas SDK.
+ *
+ * @example
+ * ```typescript
+ * const options: TranslaasOptions = {
+ *   apiKey: 'your-api-key',
+ *   baseUrl: 'https://api.translaas.com',
+ *   cacheMode: CacheMode.Group,
+ *   timeout: 30000,
+ *   defaultLanguage: 'en',
+ *   languageResolver: new LanguageResolver([...])
+ * };
+ * ```
  */
 export interface TranslaasOptions {
+  /**
+   * API key for authenticating with the Translaas API.
+   * Required. Must be a non-empty string.
+   */
   apiKey: string;
+
+  /**
+   * Base URL of the Translaas API.
+   * Required. Must be a non-empty string (e.g., 'https://api.translaas.com').
+   * Trailing slashes are automatically removed.
+   */
   baseUrl: string;
+
+  /**
+   * Cache mode for translation entries.
+   *
+   * - {@link CacheMode.None}: No caching
+   * - {@link CacheMode.Entry}: Cache individual entries
+   * - {@link CacheMode.Group}: Cache entire groups
+   * - {@link CacheMode.Project}: Cache entire projects
+   *
+   * Default: {@link CacheMode.None}
+   */
   cacheMode?: CacheMode;
-  timeout?: number; // milliseconds
-  cacheAbsoluteExpiration?: number; // milliseconds
-  cacheSlidingExpiration?: number; // milliseconds
+
+  /**
+   * Request timeout in milliseconds.
+   * If not specified, requests will not timeout automatically.
+   *
+   * @default undefined (no timeout)
+   */
+  timeout?: number;
+
+  /**
+   * Absolute expiration time for cache entries in milliseconds.
+   * Cache entries will expire after this duration from when they were cached.
+   *
+   * @default undefined (no expiration)
+   */
+  cacheAbsoluteExpiration?: number;
+
+  /**
+   * Sliding expiration time for cache entries in milliseconds.
+   * Cache entries will expire after this duration of inactivity.
+   *
+   * @default undefined (no sliding expiration)
+   */
+  cacheSlidingExpiration?: number;
+
+  /**
+   * Offline cache configuration options.
+   * Enables file-based caching for offline mode.
+   *
+   * @see {@link OfflineCacheOptions}
+   */
   offlineCache?: OfflineCacheOptions;
+
+  /**
+   * Default language code (ISO 639-1) to use when language cannot be resolved.
+   * Used as a fallback when no language resolver is configured or resolution fails.
+   *
+   * @example 'en', 'fr', 'es'
+   */
   defaultLanguage?: string;
-  // Language resolver for automatic language detection
-  // Type: ILanguageResolver from @translaas/extensions
+
+  /**
+   * Language resolver for automatic language detection.
+   *
+   * Use implementations from `@translaas/extensions`:
+   * - `LanguageResolver` - Chains multiple providers
+   * - `RequestLanguageProvider` - Extracts language from HTTP requests
+   * - `CultureLanguageProvider` - Uses browser's navigator.language
+   * - `DefaultLanguageProvider` - Returns a fixed default language
+   *
+   * @see `ILanguageResolver` from `@translaas/extensions`
+   */
   languageResolver?: any;
 }
 
 /**
- * Offline cache options
+ * Offline cache configuration options.
+ *
+ * Enables file-based caching for offline mode, allowing translations to be available
+ * even when the API is unreachable.
+ *
+ * @example
+ * ```typescript
+ * const offlineCache: OfflineCacheOptions = {
+ *   enabled: true,
+ *   cacheDirectory: './.translaas-cache',
+ *   fallbackMode: OfflineFallbackMode.CacheFirst,
+ *   autoSync: true,
+ *   autoSyncInterval: 3600000, // 1 hour
+ *   projects: ['my-project'],
+ *   languages: ['en', 'fr'],
+ *   hybridCache: {
+ *     enabled: true,
+ *     memoryCacheExpiration: 300000, // 5 minutes
+ *     maxMemoryCacheEntries: 1000
+ *   }
+ * };
+ * ```
  */
 export interface OfflineCacheOptions {
+  /**
+   * Whether offline caching is enabled.
+   * When enabled, translations are persisted to disk for offline access.
+   */
   enabled: boolean;
+
+  /**
+   * Directory path for storing cache files.
+   * Only used in Node.js environments. In browsers, localStorage is used automatically.
+   *
+   * @default './.translaas-cache'
+   */
   cacheDirectory?: string;
+
+  /**
+   * Fallback mode when API is unavailable.
+   *
+   * - {@link OfflineFallbackMode.CacheFirst}: Check cache first, then API
+   * - {@link OfflineFallbackMode.ApiFirst}: Check API first, fallback to cache on failure
+   * - {@link OfflineFallbackMode.CacheOnly}: Only use cache, never call API
+   * - {@link OfflineFallbackMode.ApiOnlyWithBackup}: Use API, but save responses to cache
+   *
+   * @default OfflineFallbackMode.ApiFirst
+   */
   fallbackMode?: OfflineFallbackMode;
+
+  /**
+   * Whether to automatically sync cache with API.
+   * When enabled, cache is periodically refreshed from the API.
+   *
+   * @default false
+   */
   autoSync?: boolean;
-  autoSyncInterval?: number; // milliseconds
+
+  /**
+   * Interval for automatic cache sync in milliseconds.
+   * Only used when {@link autoSync} is true.
+   *
+   * @default 3600000 (1 hour)
+   */
+  autoSyncInterval?: number;
+
+  /**
+   * List of project IDs to cache.
+   * If not specified, all projects are cached.
+   */
   projects?: string[];
+
+  /**
+   * List of language codes to cache.
+   * If not specified, all languages are cached.
+   */
   languages?: string[];
+
+  /**
+   * Default project ID to use when project is not specified in requests.
+   */
   defaultProjectId?: string;
+
+  /**
+   * Hybrid cache configuration (L1 memory + L2 file cache).
+   *
+   * @see {@link HybridCacheOptions}
+   */
   hybridCache?: HybridCacheOptions;
 }
 
 /**
- * Hybrid cache options
+ * Hybrid cache configuration options.
+ *
+ * Combines in-memory (L1) and file-based (L2) caching for optimal performance.
+ * L1 cache provides fast access to frequently used translations, while L2 cache
+ * provides persistent storage.
+ *
+ * @example
+ * ```typescript
+ * const hybridCache: HybridCacheOptions = {
+ *   enabled: true,
+ *   memoryCacheExpiration: 300000, // 5 minutes
+ *   maxMemoryCacheEntries: 1000,
+ *   warmupOnStartup: true
+ * };
+ * ```
  */
 export interface HybridCacheOptions {
+  /**
+   * Whether hybrid caching is enabled.
+   * When enabled, both L1 (memory) and L2 (file) caches are used.
+   */
   enabled: boolean;
-  memoryCacheExpiration?: number; // milliseconds
+
+  /**
+   * Expiration time for L1 (memory) cache entries in milliseconds.
+   *
+   * @default 300000 (5 minutes)
+   */
+  memoryCacheExpiration?: number;
+
+  /**
+   * Maximum number of entries in the L1 (memory) cache.
+   * When exceeded, least recently used entries are evicted.
+   *
+   * @default 1000
+   */
   maxMemoryCacheEntries?: number;
+
+  /**
+   * Whether to warm up the L1 cache on startup by loading from L2 cache.
+   * Improves initial performance but increases startup time.
+   *
+   * @default false
+   */
   warmupOnStartup?: boolean;
 }
 
 /**
- * Translation entry value - can be a string or plural forms object
+ * Translation entry value type.
+ *
+ * Can be either:
+ * - A simple string for non-pluralized entries
+ * - A plural forms object mapping {@link PluralCategory} to strings for pluralized entries
+ *
+ * @example
+ * ```typescript
+ * // Simple string entry
+ * const simpleEntry: TranslationEntryValue = 'Hello, World!';
+ *
+ * // Plural forms entry
+ * const pluralEntry: TranslationEntryValue = {
+ *   [PluralCategory.One]: 'one item',
+ *   [PluralCategory.Other]: '{count} items'
+ * };
+ * ```
  */
 export type TranslationEntryValue = string | Record<PluralCategory, string>;
 
 /**
- * Translation group containing multiple translation entries
+ * Translation group containing multiple translation entries.
+ *
+ * A translation group represents a collection of related translation entries,
+ * typically organized by feature or module (e.g., "common", "ui", "messages").
+ *
+ * Groups can contain both simple string entries and pluralized entries.
+ *
+ * @example
+ * ```typescript
+ * // Create from API response
+ * const group = await client.getGroupAsync('my-project', 'common', 'en');
+ *
+ * // Get simple entry
+ * const welcome = group.getValue('welcome');
+ *
+ * // Get pluralized entry
+ * const items = group.getPluralFormForNumber('items', 5, 'en');
+ *
+ * // Check if entry has plural forms
+ * if (group.hasPluralForms('items')) {
+ *   const forms = group.getPluralForms('items');
+ * }
+ * ```
  */
 export class TranslationGroup {
   /**
@@ -278,7 +580,25 @@ export class TranslationGroup {
 }
 
 /**
- * Translation project containing multiple translation groups
+ * Translation project containing multiple translation groups.
+ *
+ * A translation project represents all translations for a specific project,
+ * organized into groups. This is the top-level container for translations.
+ *
+ * @example
+ * ```typescript
+ * // Get entire project from API
+ * const project = await client.getProjectAsync('my-project', 'en');
+ *
+ * // Get a specific group
+ * const commonGroup = project.getGroup('common');
+ * if (commonGroup) {
+ *   const welcome = commonGroup.getValue('welcome');
+ * }
+ *
+ * // Access all groups
+ * console.log(Object.keys(project.groups)); // ['common', 'ui', 'messages']
+ * ```
  */
 export class TranslationProject {
   /**
@@ -306,7 +626,25 @@ export class TranslationProject {
 }
 
 /**
- * Project locales containing available locale codes
+ * Project locales containing available locale codes.
+ *
+ * Represents the list of language codes available for a specific project.
+ *
+ * @example
+ * ```typescript
+ * // Get available locales
+ * const locales = await client.getProjectLocalesAsync('my-project');
+ *
+ * // Check if a language is available
+ * if (locales.locales.includes('fr')) {
+ *   // French is available
+ * }
+ *
+ * // List all available languages
+ * locales.locales.forEach(lang => {
+ *   console.log(`Available: ${lang}`);
+ * });
+ * ```
  */
 export class ProjectLocales {
   /**

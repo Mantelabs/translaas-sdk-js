@@ -555,4 +555,133 @@ describe('TranslaasClient', () => {
       expect(call[0]).toContain('name=John+Doe');
     });
   });
+
+  describe('error handling edge cases', () => {
+    it('should handle AbortError from fetch', async () => {
+      const abortError = new Error('Request aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValueOnce(abortError);
+
+      const client = new TranslaasClient(defaultOptions);
+      try {
+        await client.getEntryAsync('group', 'entry', 'en');
+        expect.fail('Should have thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(TranslaasApiException);
+        expect((error as TranslaasApiException).message).toContain('cancelled or timed out');
+      }
+    });
+
+    it('should handle unknown error types', async () => {
+      // Simulate a non-Error object being thrown
+      mockFetch.mockRejectedValueOnce('String error');
+
+      const client = new TranslaasClient(defaultOptions);
+      try {
+        await client.getEntryAsync('group', 'entry', 'en');
+        expect.fail('Should have thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(TranslaasApiException);
+        expect((error as TranslaasApiException).message).toContain('Unknown error');
+      }
+    });
+
+    it('should handle error response with JSON error field', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        text: async () => JSON.stringify({ error: 'Invalid request parameters' }),
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      try {
+        await client.getEntryAsync('group', 'entry', 'en');
+        expect.fail('Should have thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(TranslaasApiException);
+        expect((error as TranslaasApiException).message).toContain('Invalid request parameters');
+      }
+    });
+
+    it('should handle error response with non-JSON text', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => 'Plain text error message',
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      try {
+        await client.getEntryAsync('group', 'entry', 'en');
+        expect.fail('Should have thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(TranslaasApiException);
+        expect((error as TranslaasApiException).message).toContain('Plain text error message');
+      }
+    });
+
+    it('should handle error when reading response body fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => {
+          throw new Error('Failed to read body');
+        },
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      await expect(client.getEntryAsync('group', 'entry', 'en')).rejects.toThrow(
+        TranslaasApiException
+      );
+    });
+
+    it('should handle cancellation token with timeout - event listener path', async () => {
+      const abortController = new AbortController();
+      const client = new TranslaasClient({
+        ...defaultOptions,
+        timeout: 5000,
+      });
+
+      // Mock fetch to check if signal was aborted
+      let capturedSignal: AbortSignal | undefined;
+      mockFetch.mockImplementationOnce((url, options) => {
+        capturedSignal = options?.signal as AbortSignal;
+        // Return a promise that will be aborted
+        return new Promise((resolve, reject) => {
+          if (capturedSignal?.aborted) {
+            const error = new Error('Aborted');
+            error.name = 'AbortError';
+            reject(error);
+          } else {
+            // Set up listener to reject when aborted
+            capturedSignal?.addEventListener('abort', () => {
+              const error = new Error('Aborted');
+              error.name = 'AbortError';
+              reject(error);
+            });
+          }
+        });
+      });
+
+      // Start the request
+      const requestPromise = client.getEntryAsync(
+        'group',
+        'entry',
+        'en',
+        undefined,
+        undefined,
+        abortController.signal
+      );
+
+      // Abort after a short delay to trigger the event listener
+      setTimeout(() => {
+        abortController.abort();
+      }, 10);
+
+      await expect(requestPromise).rejects.toThrow();
+    });
+  });
 });

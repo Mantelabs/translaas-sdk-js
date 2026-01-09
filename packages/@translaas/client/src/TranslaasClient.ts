@@ -9,14 +9,63 @@ import {
 } from '@translaas/models';
 
 /**
- * Translaas HTTP client implementation
+ * Translaas HTTP client implementation.
  *
  * Provides methods to interact with the Translaas Translation Delivery API.
  * Supports fetching individual translation entries, groups, projects, and available locales.
+ *
+ * This is the core client class for making API requests. For a more convenient API
+ * with automatic language resolution, use {@link TranslaasService}.
+ *
+ * @example
+ * ```typescript
+ * // Basic usage
+ * const client = new TranslaasClient({
+ *   apiKey: 'your-api-key',
+ *   baseUrl: 'https://api.translaas.com'
+ * });
+ *
+ * const translation = await client.getEntryAsync('common', 'welcome', 'en');
+ *
+ * // With pluralization
+ * const items = await client.getEntryAsync('messages', 'items', 'en', 5);
+ *
+ * // With parameters
+ * const greeting = await client.getEntryAsync('common', 'greeting', 'en', undefined, {
+ *   name: 'John'
+ * });
+ *
+ * // Get entire group
+ * const group = await client.getGroupAsync('my-project', 'common', 'en');
+ *
+ * // Get entire project
+ * const project = await client.getProjectAsync('my-project', 'en');
+ *
+ * // Get available locales
+ * const locales = await client.getProjectLocalesAsync('my-project');
+ * ```
+ *
+ * @see {@link ITranslaasClient} for the interface definition
+ * @see {@link TranslaasService} for a higher-level API with language resolution
  */
 export class TranslaasClient implements ITranslaasClient {
   private readonly baseUrl: string;
 
+  /**
+   * Creates a new TranslaasClient instance.
+   *
+   * @param options - Configuration options for the client
+   * @throws `TranslaasConfigurationException` if API key or base URL is missing or empty
+   *
+   * @example
+   * ```typescript
+   * const client = new TranslaasClient({
+   *   apiKey: 'your-api-key',
+   *   baseUrl: 'https://api.translaas.com',
+   *   timeout: 30000 // 30 seconds
+   * });
+   * ```
+   */
   constructor(private options: TranslaasOptions) {
     if (!options.apiKey || options.apiKey.trim() === '') {
       throw new TranslaasConfigurationException('API key is required');

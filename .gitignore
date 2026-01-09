@@ -124,5 +124,6 @@ Desktop.ini
 # OS-specific
 *.orig
 
-# Documentation directory (excluded from version control)
-docs/
+# Generated API documentation (excluded from version control - can be regenerated with npm run docs)
+docs/api/
+.docs/

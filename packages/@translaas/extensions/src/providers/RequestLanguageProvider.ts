@@ -1,13 +1,39 @@
 import type { ILanguageProvider } from '../types';
 
 /**
- * Request language provider for Express.js and Next.js
- * Checks route params, query strings, headers, and cookies for language information
+ * Request language provider for Express.js and Next.js.
+ *
+ * Extracts language information from HTTP request objects by checking multiple sources
+ * in priority order:
+ * 1. Route parameters (e.g., `/api/:lang/translate`)
+ * 2. Query string (e.g., `?lang=en`)
+ * 3. Cookies (e.g., `lang=en`)
+ * 4. Accept-Language header (e.g., `Accept-Language: en-US,en;q=0.9`)
  *
  * Compatible with:
  * - Express.js request objects
  * - Next.js API route request objects (App Router and Pages Router)
  * - Any object with params, query, headers, and cookies properties
+ *
+ * @example
+ * ```typescript
+ * // Express.js example
+ * app.get('/api/translate', async (req, res) => {
+ *   const provider = new RequestLanguageProvider(req);
+ *   const lang = await provider.getLanguageAsync();
+ *   // Language extracted from request
+ * });
+ *
+ * // With custom parameter names
+ * const provider = new RequestLanguageProvider(req, {
+ *   route: 'locale',    // Check req.params.locale
+ *   query: 'language',  // Check req.query.language
+ *   cookie: 'lang',     // Check req.cookies.lang
+ *   header: 'x-lang'    // Check req.headers['x-lang']
+ * });
+ * ```
+ *
+ * @see {@link ILanguageProvider} for the interface definition
  */
 export class RequestLanguageProvider implements ILanguageProvider {
   /**
@@ -30,6 +56,30 @@ export class RequestLanguageProvider implements ILanguageProvider {
     cookie?: string;
   };
 
+  /**
+   * Creates a new RequestLanguageProvider instance.
+   *
+   * @param request - Request object with params, query, headers, and cookies properties
+   * @param paramNames - Optional custom parameter names for different sources
+   *                    - route: Parameter name in route params (default: 'lang')
+   *                    - query: Parameter name in query string (default: 'lang')
+   *                    - cookie: Cookie name (default: 'lang')
+   *                    - header: Header name (default: 'accept-language')
+   *
+   * @example
+   * ```typescript
+   * // Default parameter names
+   * const provider = new RequestLanguageProvider(req);
+   *
+   * // Custom parameter names
+   * const provider = new RequestLanguageProvider(req, {
+   *   route: 'locale',
+   *   query: 'language',
+   *   cookie: 'user-lang',
+   *   header: 'x-language'
+   * });
+   * ```
+   */
   constructor(
     request: {
       params?: Record<string, string>;
@@ -54,12 +104,25 @@ export class RequestLanguageProvider implements ILanguageProvider {
   }
 
   /**
-   * Resolves language from request sources in priority order:
-   * 1. Route parameters
-   * 2. Query string
-   * 3. Cookies
-   * 4. Accept-Language header
-   * @returns Promise resolving to the language code or null if not found
+   * Resolves language from request sources in priority order.
+   *
+   * Checks sources in this order:
+   * 1. Route parameters (e.g., `/api/:lang/translate`)
+   * 2. Query string (e.g., `?lang=en`)
+   * 3. Cookies (e.g., `lang=en`)
+   * 4. Accept-Language header (e.g., `Accept-Language: en-US,en;q=0.9`)
+   *
+   * Returns the first non-null value found, or null if none are found.
+   * Language codes are normalized (e.g., "en-US" → "en") before being returned.
+   *
+   * @returns Promise resolving to the normalized language code or null if not found
+   *
+   * @example
+   * ```typescript
+   * const provider = new RequestLanguageProvider(req);
+   * const lang = await provider.getLanguageAsync();
+   * // Returns language from request, or null if not found
+   * ```
    */
   async getLanguageAsync(): Promise<string | null> {
     // 1. Check route parameters

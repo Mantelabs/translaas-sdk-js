@@ -1,6 +1,6 @@
 {
   "name": "@translaas/sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A strongly-typed, performant, and modular JavaScript/TypeScript SDK for consuming the Translaas Translation Delivery API",
   "private": true,
   "workspaces": [
@@ -23,6 +23,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "type-check": "tsc --noEmit",
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch",
     "clean": "npm run clean --workspaces && rm -rf node_modules dist coverage .turbo",
     "prepare": "husky install",
     "changeset": "changeset",
@@ -65,6 +67,7 @@
     "husky": "^8.0.3",
     "lint-staged": "^15.1.0",
     "prettier": "^3.1.0",
+    "typedoc": "^0.26.0",
     "typescript": "^5.3.2",
     "typescript-eslint": "^8.52.0",
     "vitest": "^4.0.16"

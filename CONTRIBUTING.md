@@ -211,29 +211,37 @@ Red → Green → Refactor
    - Create test file alongside source file or in `tests/` directory
    - Name it `{ModuleName}.test.ts`
    - Add appropriate test dependencies (Jest/Vitest, mocking libraries)
-3. **Update documentation** if you're adding features or changing behavior
-4. **Ensure test coverage**:
+3. **Create a changeset** if your changes should be versioned:
+   ```bash
+   npm run changeset
+   ```
+   - Select the packages that changed
+   - Choose the version bump type (major/minor/patch)
+   - Write a summary of the changes
+   - Commit the changeset file with your PR
+4. **Update documentation** if you're adding features or changing behavior
+5. **Ensure test coverage**:
    - All public APIs have tests
    - Both success and failure scenarios are tested
    - Tests follow naming convention: `{MethodName}_{Scenario}_{ExpectedBehavior}`
-5. **Run the build** to ensure everything compiles:
+6. **Run the build** to ensure everything compiles:
    ```bash
    npm run build
    ```
-6. **Run type checking** to ensure TypeScript is happy:
+7. **Run type checking** to ensure TypeScript is happy:
    ```bash
    npm run type-check
    ```
-7. **Run tests** and ensure all pass:
+8. **Run tests** and ensure all pass:
    ```bash
    npm test
    ```
-8. **Run linting** to ensure code style is correct:
+9. **Run linting** to ensure code style is correct:
    ```bash
    npm run lint
    ```
-9. **Update the README** if you're adding new features or changing usage
-10. **Write a clear PR description**:
+10. **Update the README** if you're adding new features or changing usage
+11. **Write a clear PR description**:
     - What changes were made
     - Why the changes were made
     - How to test the changes
@@ -395,35 +403,99 @@ npm run type-check
 
 ## Release Notes and Version Management
 
-### Version Management
+### Version Management with Changesets
 
-#### How to Update the Version
+The SDK uses [Changesets](https://github.com/changesets/changesets) for version management. Changesets enables **independent versioning** of packages while maintaining dependency relationships automatically.
 
-The SDK uses a centralized version management approach. To update the version for all packages:
+#### How Changesets Works
 
-1. **Update the version in root `package.json`** or use a tool like `changesets`:
-   ```json
-   {
-     "version": "X.Y.Z"
-   }
-   ```
+1. **Create a changeset** when you make changes that should be versioned
+2. **Changesets are committed** to the repository
+3. **CI automatically** creates a version PR when changesets are merged
+4. **Merging the version PR** triggers automated publishing to npm
 
-2. **Update the release notes section in this file (`CONTRIBUTING.md`)**:
-   - Add a new version section at the top of the "Release Notes" section
-   - Update package version numbers in the "Packages Included" section
-   - Document new features, changes, fixes, etc.
+#### Creating a Changeset
 
-3. **Rebuild and repack all packages**:
+When you make changes that should be versioned, create a changeset:
+
+```bash
+npm run changeset
+```
+
+This interactive command will:
+1. Ask which packages changed
+2. Ask what type of change (major, minor, patch)
+3. Ask for a summary of the changes
+4. Create a changeset file in `.changeset/`
+
+**Example changeset file** (`.changeset/short-name.md`):
+```markdown
+---
+"@translaas/client": patch
+"@translaas/models": patch
+---
+
+Fixed timeout issue in retry policy for HTTP requests
+```
+
+#### Changeset Types
+
+- **Major** (`major`): Breaking changes that require users to update their code
+- **Minor** (`minor`): New features that are backward compatible
+- **Patch** (`patch`): Bug fixes that are backward compatible
+
+#### When to Create a Changeset
+
+Create a changeset for:
+- ✅ New features
+- ✅ Bug fixes
+- ✅ Breaking changes
+- ✅ Documentation updates that affect usage
+- ✅ Dependency updates that affect behavior
+
+**Don't create a changeset for:**
+- ❌ Internal refactoring with no user-facing changes
+- ❌ Test-only changes
+- ❌ Build system changes that don't affect published packages
+- ❌ Documentation-only changes (unless they affect API usage)
+
+#### Version Release Process
+
+**Automated Process (Recommended):**
+
+1. **Create and commit changesets** with your PR:
    ```bash
-   # Clean previous builds (optional)
-   npm run clean
-   
-   # Build all packages
-   npm run build
-   
-   # Run tests
-   npm test
+   npm run changeset
+   git add .changeset/
+   git commit -m "feat: add new feature"
    ```
+
+2. **Merge your PR** to `main`
+
+3. **CI automatically**:
+   - Detects changesets
+   - Creates a "Version Packages" PR
+   - Updates package versions
+   - Updates changelogs
+
+4. **Review and merge** the "Version Packages" PR
+
+5. **CI automatically publishes** to npm when the version PR is merged
+
+**Manual Process (If needed):**
+
+If you need to manually release:
+
+```bash
+# 1. Update versions based on changesets
+npm run changeset:version
+
+# 2. Build all packages
+npm run build
+
+# 3. Publish to npm
+npm run changeset:publish
+```
 
 #### Version Numbering
 
@@ -431,6 +503,46 @@ We follow [Semantic Versioning](https://semver.org/) (SemVer):
 - **MAJOR** (X.0.0): Breaking changes
 - **MINOR** (0.Y.0): New features, backward compatible
 - **PATCH** (0.0.Z): Bug fixes, backward compatible
+
+#### Independent Package Versioning
+
+Each package in the monorepo can be versioned independently:
+- `@translaas/models` can be at `1.2.0`
+- `@translaas/client` can be at `1.3.0`
+- `@translaas/caching` can be at `1.1.5`
+
+Changesets automatically:
+- Updates dependent packages when their dependencies change
+- Maintains version consistency across the monorepo
+- Generates changelogs for each package
+
+#### Changeset Scripts
+
+Available npm scripts:
+
+- `npm run changeset` - Create a new changeset interactively
+- `npm run changeset:version` - Update package versions based on changesets
+- `npm run changeset:publish` - Publish packages to npm
+- `npm run version` - Alias for `changeset:version`
+- `npm run release` - Build and publish (combines build + publish)
+
+#### CI Integration
+
+The GitHub Actions workflow (`.github/workflows/release.yml`) automatically:
+- ✅ Checks for changesets on every push to `main`
+- ✅ Creates a "Version Packages" PR when changesets are detected
+- ✅ Publishes packages to npm when the version PR is merged
+- ✅ Updates changelogs automatically
+
+**Required Secrets:**
+- `NPM_TOKEN` - npm authentication token for publishing
+
+#### Changelog Generation
+
+Changesets automatically generates changelogs:
+- Each package gets its own `CHANGELOG.md`
+- Changelogs are updated when versions are bumped
+- Format follows [Keep a Changelog](https://keepachangelog.com/) conventions
 
 #### Pre-Release Versions
 

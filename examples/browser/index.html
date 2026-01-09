@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Translaas Browser Example</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <div class="container">
@@ -45,7 +45,7 @@
           <h2>Pluralization</h2>
           <div class="translation-box">
             <p id="items-text">Loading...</p>
-            <code>await translaas.t('messages', 'items', 'en', 5, { itemCount: '5' })</code>
+            <code>await translaas.t('messages', 'item', 'en', 5)</code>
           </div>
         </section>
 
@@ -79,6 +79,6 @@
       </footer>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script type="module" src="/app.js"></script>
   </body>
 </html>

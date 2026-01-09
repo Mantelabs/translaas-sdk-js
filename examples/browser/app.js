@@ -47,34 +47,47 @@ async function updateDetectedLanguage() {
 
 // Load translations
 async function loadTranslations(lang = 'en') {
+  const projectId = 'translaas-sdk-samples';
+  const appNameEl = document.getElementById('app-name-text');
+  const welcomeEl = document.getElementById('welcome-text');
+  const greetingEl = document.getElementById('greeting-text');
+  const itemsEl = document.getElementById('items-text');
+
   try {
     // Update UI
-    document.getElementById('welcome-text').textContent = 'Loading...';
-    document.getElementById('greeting-text').textContent = 'Loading...';
-    document.getElementById('items-text').textContent = 'Loading...';
+    if (appNameEl) appNameEl.textContent = 'Loading...';
+    if (welcomeEl) welcomeEl.textContent = 'Loading...';
+    if (greetingEl) greetingEl.textContent = 'Loading...';
+    if (itemsEl) itemsEl.textContent = 'Loading...';
 
     // Fetch translations
+    const appName = await translaas.t('common', 'app.name', lang);
     const welcome = await translaas.t('common', 'welcome', lang);
-    const greeting = await translaas.t('common', 'greeting', lang, undefined, {
-      name: 'Browser User',
+    const greeting = await translaas.t('messages', 'greeting', lang, undefined, {
+      userName: 'Browser User',
+      itemCount: '1',
     });
     const items = await translaas.t('messages', 'items', lang, 5, {
-      count: '5',
+      itemCount: '5',
     });
 
     // Update UI
-    document.getElementById('welcome-text').textContent = welcome;
-    document.getElementById('greeting-text').textContent = greeting;
-    document.getElementById('items-text').textContent = items;
+    if (appNameEl) appNameEl.textContent = appName;
+    if (welcomeEl) welcomeEl.textContent = welcome;
+    if (greetingEl) greetingEl.textContent = greeting;
+    if (itemsEl) itemsEl.textContent = items;
 
     // Update cache status
-    const isCached = await browserCache.isCachedAsync('default-project', lang);
-    document.getElementById('cache-status').textContent = isCached ? 'Active' : 'Not cached';
+    const isCached = await browserCache.isCachedAsync(projectId, lang);
+    const cacheStatusEl = document.getElementById('cache-status');
+    if (cacheStatusEl) cacheStatusEl.textContent = isCached ? 'Active' : 'Not cached';
   } catch (error) {
     console.error('Translation error:', error);
-    document.getElementById('welcome-text').textContent = `Error: ${error.message}`;
-    document.getElementById('greeting-text').textContent = `Error: ${error.message}`;
-    document.getElementById('items-text').textContent = `Error: ${error.message}`;
+    const errorMsg = `Error: ${error.message}`;
+    if (appNameEl) appNameEl.textContent = errorMsg;
+    if (welcomeEl) welcomeEl.textContent = errorMsg;
+    if (greetingEl) greetingEl.textContent = errorMsg;
+    if (itemsEl) itemsEl.textContent = errorMsg;
   }
 }
 

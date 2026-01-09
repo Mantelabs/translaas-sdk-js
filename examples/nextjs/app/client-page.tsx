@@ -18,11 +18,13 @@ export default function ClientPage() {
     async function fetchTranslations() {
       const translaas = createClientService();
       try {
+        const appNameText = await translaas.t('common', 'app.name', 'en');
         const welcomeText = await translaas.t('common', 'welcome', 'en');
-        const greetingText = await translaas.t('common', 'greeting', 'en', undefined, {
-          name: 'Client User',
+        const greetingText = await translaas.t('messages', 'greeting', 'en', undefined, {
+          userName: 'Client User',
+          itemCount: '1',
         });
-        setWelcome(welcomeText);
+        setWelcome(`${appNameText} - ${welcomeText}`);
         setGreeting(greetingText);
       } catch (error) {
         console.error('Translation error:', error);
@@ -52,11 +54,14 @@ export default function ClientPage() {
       <div
         style={{ background: '#f5f5f5', padding: '15px', margin: '20px 0', borderRadius: '5px' }}
       >
-        <h2>Welcome Message</h2>
+        <h2>App Name and Welcome</h2>
         <p>
           <strong>Translation:</strong> {welcome}
         </p>
-        <code>await translaas.t('common', 'welcome', 'en')</code>
+        <code>
+          await translaas.t('common', 'app.name', 'en') + ' - ' + await translaas.t('common',
+          'welcome', 'en')
+        </code>
       </div>
 
       <div
@@ -67,7 +72,8 @@ export default function ClientPage() {
           <strong>Translation:</strong> {greeting}
         </p>
         <code>
-          await translaas.t('common', 'greeting', 'en', undefined, {'{'} name: 'Client User' {'}'})
+          await translaas.t('messages', 'greeting', 'en', undefined, {'{'} userName: 'Client User',
+          itemCount: '1' {'}'})
         </code>
       </div>
 

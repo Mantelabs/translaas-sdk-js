@@ -12,9 +12,11 @@ export function createRoutes() {
   // Home page
   router.get('/', async (req, res) => {
     try {
+      const projectId = process.env.TRANSLAAS_PROJECT || 'translaas-sdk-samples';
       const welcome = await req.translaas.t('common', 'welcome');
-      const greeting = await req.translaas.t('common', 'greeting', undefined, undefined, {
-        name: 'Visitor',
+      const greeting = await req.translaas.t('messages', 'greeting', undefined, undefined, {
+        userName: 'Visitor',
+        itemCount: '1',
       });
 
       res.send(`
@@ -100,12 +102,16 @@ export function createRoutes() {
   // Get available locales
   router.get('/api/locales', async (req, res) => {
     try {
-      // Note: This requires TranslaasClient, not TranslaasService
-      // For this example, we'll return a simple response
+      const { TranslaasClient } = await import('@translaas/core');
+      const projectId = process.env.TRANSLAAS_PROJECT || 'translaas-sdk-samples';
+      const client = new TranslaasClient({
+        apiKey: process.env.TRANSLAAS_API_KEY,
+        baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
+      });
+      const locales = await client.getProjectLocalesAsync(projectId);
       res.json({
-        message: 'Use TranslaasClient.getProjectLocalesAsync() for this endpoint',
-        example:
-          'const client = new TranslaasClient(options); const locales = await client.getProjectLocalesAsync(project);',
+        project: projectId,
+        locales: locales.locales,
       });
     } catch (error) {
       res.status(500).json({ error: error.message });

@@ -5,7 +5,7 @@
  * with automatic language resolution from HTTP request
  */
 
-import { TranslaasService } from '@translaas/core';
+import { TranslaasService, CacheMode } from '@translaas/core';
 import {
   LanguageResolver,
   RequestLanguageProvider,
@@ -28,7 +28,11 @@ export function createTranslaasMiddleware() {
       apiKey: process.env.TRANSLAAS_API_KEY,
       baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
       languageResolver: requestResolver,
-      defaultLanguage: 'en',
+      defaultLanguage: process.env.TRANSLAAS_DEFAULT_LANGUAGE || 'en',
+      cacheMode: CacheMode.Group,
+      cacheAbsoluteExpiration: 3600000, // 1 hour
+      cacheSlidingExpiration: 1800000, // 30 minutes
+      timeout: 30000, // 30 seconds
     });
 
     next();

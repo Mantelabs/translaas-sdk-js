@@ -12,14 +12,26 @@ export default async function HomePage() {
 
   // Fetch translations on the server
   const welcome = await translaas.t('common', 'welcome', 'en');
-  const greeting = await translaas.t('common', 'greeting', 'en', undefined, {
-    name: 'Next.js User',
+  const appName = await translaas.t('common', 'app.name', 'en');
+  const greeting = await translaas.t('messages', 'greeting', 'en', undefined, {
+    userName: 'Next.js User',
+    itemCount: '1',
   });
 
   return (
     <div style={{ maxWidth: '800px', margin: '50px auto', padding: '20px' }}>
       <h1>🌐 Translaas Next.js Example</h1>
       <p>This page is server-side rendered with translations.</p>
+
+      <div
+        style={{ background: '#f5f5f5', padding: '15px', margin: '20px 0', borderRadius: '5px' }}
+      >
+        <h2>App Name</h2>
+        <p>
+          <strong>Translation:</strong> {appName}
+        </p>
+        <code>await translaas.t('common', 'app.name', 'en')</code>
+      </div>
 
       <div
         style={{ background: '#f5f5f5', padding: '15px', margin: '20px 0', borderRadius: '5px' }}
@@ -39,7 +51,8 @@ export default async function HomePage() {
           <strong>Translation:</strong> {greeting}
         </p>
         <code>
-          await translaas.t('common', 'greeting', 'en', undefined, {'{'} name: 'Next.js User' {'}'})
+          await translaas.t('messages', 'greeting', 'en', undefined, {'{'} userName: 'Next.js User',
+          itemCount: '1' {'}'})
         </code>
       </div>
 

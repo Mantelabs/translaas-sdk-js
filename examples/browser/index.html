@@ -15,6 +15,14 @@
 
       <main>
         <section class="example-section">
+          <h2>App Name</h2>
+          <div class="translation-box">
+            <p id="app-name-text">Loading...</p>
+            <code>await translaas.t('common', 'app.name', 'en')</code>
+          </div>
+        </section>
+
+        <section class="example-section">
           <h2>Basic Translation</h2>
           <div class="translation-box">
             <p id="welcome-text">Loading...</p>
@@ -27,8 +35,8 @@
           <div class="translation-box">
             <p id="greeting-text">Loading...</p>
             <code
-              >await translaas.t('common', 'greeting', 'en', undefined, { name: 'Browser User'
-              })</code
+              >await translaas.t('messages', 'greeting', 'en', undefined, { userName: 'Browser
+              User', itemCount: '1' })</code
             >
           </div>
         </section>
@@ -37,7 +45,7 @@
           <h2>Pluralization</h2>
           <div class="translation-box">
             <p id="items-text">Loading...</p>
-            <code>await translaas.t('messages', 'items', 'en', 5, { count: '5' })</code>
+            <code>await translaas.t('messages', 'items', 'en', 5, { itemCount: '5' })</code>
           </div>
         </section>
 

@@ -1,0 +1,21 @@
+{
+  "name": "translaas-nodejs-example",
+  "version": "1.0.0",
+  "description": "Node.js example application demonstrating Translaas SDK usage",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "basic": "node examples/basic-usage.js",
+    "caching": "node examples/caching.js",
+    "error-handling": "node examples/error-handling.js"
+  },
+  "dependencies": {
+    "@translaas/core": "*",
+    "@translaas/caching-file": "*",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

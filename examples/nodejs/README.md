@@ -11,7 +11,16 @@ This example demonstrates how to use the Translaas SDK in a Node.js application.
 
 ## Setup
 
-1. Install dependencies:
+1. **First, build the SDK packages from the repository root** (if you've made changes to the SDK):
+
+```bash
+# From the repository root directory
+cd ../..
+npm run build
+cd examples/nodejs
+```
+
+2. Install dependencies:
 
 ```bash
 npm install

@@ -8,7 +8,8 @@
     "start": "node index.js",
     "basic": "node examples/basic-usage.js",
     "caching": "node examples/caching.js",
-    "error-handling": "node examples/error-handling.js"
+    "error-handling": "node examples/error-handling.js",
+    "build": "echo 'Note: This example uses packages built from the repository root. Run \"npm run build\" from the root directory to rebuild SDK packages.'"
   },
   "dependencies": {
     "@translaas/core": "*",

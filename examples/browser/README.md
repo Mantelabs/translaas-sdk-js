@@ -17,7 +17,13 @@ This example demonstrates how to use the Translaas SDK in a browser environment.
 npm install
 ```
 
-2. Configure your API credentials in `index.html`:
+2. Copy `.env.example` to `.env` and update with your credentials (optional - you can also configure directly in `app.js`):
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your actual credentials, or update the values directly in `app.js`:
 
 ```javascript
 const TRANSLAAS_API_KEY = 'your-api-key-here';

@@ -17,7 +17,13 @@ This example demonstrates how to use the Translaas SDK in a Node.js application.
 npm install
 ```
 
-2. Create a `.env` file with your Translaas API credentials:
+2. Copy `.env.example` to `.env` and update with your Translaas API credentials:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your actual credentials:
 
 ```env
 TRANSLAAS_API_KEY=your-api-key-here

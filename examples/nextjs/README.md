@@ -18,7 +18,13 @@ This example demonstrates how to integrate the Translaas SDK with Next.js applic
 npm install
 ```
 
-2. Create a `.env.local` file:
+2. Copy `.env.local.example` to `.env.local` and update with your credentials:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Then edit `.env.local` with your actual credentials:
 
 ```env
 TRANSLAAS_API_KEY=your-api-key-here

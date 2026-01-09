@@ -17,11 +17,18 @@ This example demonstrates how to integrate the Translaas SDK with Express.js app
 npm install
 ```
 
-2. Create a `.env` file:
+2. Copy `.env.example` to `.env` and update with your credentials:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your actual credentials:
 
 ```env
 TRANSLAAS_API_KEY=your-api-key-here
 TRANSLAAS_BASE_URL=https://api.translaas.com
+TRANSLAAS_PROJECT=your-project-name
 PORT=3000
 ```
 

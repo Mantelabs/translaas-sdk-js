@@ -13,8 +13,10 @@ import {
 } from '@translaas/extensions';
 
 // Configuration
-const TRANSLAAS_API_KEY = 'your-api-key-here'; // Replace with your API key
-const TRANSLAAS_BASE_URL = 'https://api.translaas.com';
+// Note: In a real application, load these from environment variables or a config file
+// For this example, we use placeholder values - replace with your actual API credentials
+const TRANSLAAS_API_KEY = import.meta.env?.VITE_TRANSLAAS_API_KEY || 'your-api-key-here';
+const TRANSLAAS_BASE_URL = import.meta.env?.VITE_TRANSLAAS_BASE_URL || 'https://api.translaas.com';
 
 // Initialize browser cache provider
 const browserCache = new BrowserCacheProvider();

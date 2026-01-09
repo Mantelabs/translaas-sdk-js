@@ -1,0 +1,21 @@
+{
+  "name": "translaas-browser-example",
+  "version": "1.0.0",
+  "description": "Browser example demonstrating Translaas SDK usage",
+  "type": "module",
+  "scripts": {
+    "start": "npx http-server . -p 8080 -o",
+    "dev": "npx http-server . -p 8080 -o -c-1"
+  },
+  "dependencies": {
+    "@translaas/core": "*",
+    "@translaas/caching-file": "*",
+    "@translaas/extensions": "*"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

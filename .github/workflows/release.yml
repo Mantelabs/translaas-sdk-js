@@ -11,6 +11,11 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # Skip if this commit is from the changesets action itself to prevent duplicate runs
+    # The changesets action uses 'chore: version packages' as the commit message
+    if: |
+      github.event.head_commit.message != null &&
+      !contains(github.event.head_commit.message, 'chore: version packages')
     permissions:
       contents: write
       pull-requests: write

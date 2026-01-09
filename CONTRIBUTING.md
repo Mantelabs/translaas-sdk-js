@@ -533,6 +533,12 @@ The GitHub Actions workflow (`.github/workflows/release.yml`) automatically:
 - ✅ Creates a "Version Packages" PR when changesets are detected
 - ✅ Publishes packages to npm when the version PR is merged
 - ✅ Updates changelogs automatically
+- ✅ Prevents duplicate runs (skips commits from the changesets action itself)
+
+**Workflow Behavior:**
+- When you merge a PR with changesets → Workflow runs once and creates a version PR
+- When you merge the version PR → Workflow runs once and publishes to npm
+- The workflow automatically skips commits created by the changesets action to prevent duplicate runs
 
 **Required Secrets:**
 - `NPM_TOKEN` - npm authentication token for publishing

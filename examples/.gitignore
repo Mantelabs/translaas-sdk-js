@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+# .env files contain actual secrets and should not be committed
+# Users should copy .env.example to .env and update with their credentials
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.local.example
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Cache
+.translaas-cache/
+.cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

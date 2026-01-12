@@ -287,6 +287,58 @@ const options: TranslaasOptions = {
 };
 ```
 
+## Examples
+
+We provide example applications demonstrating how to use the Translaas SDK in different environments:
+
+### Node.js Example
+
+Basic Node.js application showing translation lookups, caching, and error handling.
+
+```bash
+cd examples/nodejs
+npm install
+npm start
+```
+
+[View Node.js Example →](examples/nodejs/)
+
+### Express.js Example
+
+Express.js server with middleware integration and automatic language resolution from HTTP requests.
+
+```bash
+cd examples/express
+npm install
+npm start
+```
+
+[View Express.js Example →](examples/express/)
+
+### Next.js Example
+
+Next.js application with React components, server-side rendering, and client-side rendering.
+
+```bash
+cd examples/nextjs
+npm install
+npm run dev
+```
+
+[View Next.js Example →](examples/nextjs/)
+
+### Browser Example
+
+Vanilla JavaScript browser application with localStorage caching and browser language detection.
+
+```bash
+cd examples/browser
+npm install
+npm start
+```
+
+[View Browser Example →](examples/browser/)
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

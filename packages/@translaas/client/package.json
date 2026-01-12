@@ -17,7 +17,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run build:esm && npm run build:cjs && npm run build:copy-cjs",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:copy-cjs && npm run build:fix-esm",
+    "build:fix-esm": "node ../../../scripts/fix-esm-imports.js",
     "build:esm": "tsc --build tsconfig.json",
     "build:cjs": "tsc --build tsconfig.cjs.json",
     "build:copy-cjs": "node ../../../scripts/copy-cjs.js",

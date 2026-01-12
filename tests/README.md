@@ -20,7 +20,9 @@ tests/
 │   ├── basic-translation.test.ts
 │   ├── caching-workflows.test.ts
 │   ├── language-resolution.test.ts
-│   └── error-scenarios.test.ts
+│   ├── error-scenarios.test.ts
+│   ├── full-stack.test.ts
+│   └── offline-cache.test.ts
 ├── setup/                 # Test setup and utilities
 │   ├── mock-api.ts        # MSW mock API server
 │   └── test-helpers.ts    # Test helper functions
@@ -117,6 +119,26 @@ Tests error handling:
 - Invalid configuration
 - Malformed responses
 
+### Full Stack Integration (`full-stack.test.ts`)
+
+Tests complete component integration:
+
+- Client + Memory Cache integration
+- Client + File Cache integration
+- Client + Hybrid Cache integration
+- Service + Language Resolver + Cache integration
+- End-to-end workflows with multiple components
+
+### Offline Cache Workflows (`offline-cache.test.ts`)
+
+Tests offline and cache fallback scenarios:
+
+- Cache-only mode (offline mode)
+- API failure with cache fallback
+- Cache-first vs API-first strategies
+- Offline cache invalidation
+- Service integration with offline cache
+
 ## Writing New Integration Tests
 
 ### Basic Test Structure
@@ -182,13 +204,35 @@ server.use(
 );
 ```
 
+### Using Error Handlers
+
+```typescript
+import { createErrorHandlers } from '../setup/mock-api';
+
+const errorHandlers = createErrorHandlers(mockConfig);
+
+// Use specific error handlers
+server.use(errorHandlers.serverError);
+server.use(errorHandlers.rateLimit);
+server.use(errorHandlers.networkError);
+```
+
 ## CI Integration
 
-Integration tests run automatically in CI/CD pipelines. The tests are configured with:
+Integration tests run automatically in CI/CD pipelines via `.github/workflows/integration-tests.yml`. The tests are configured with:
 
 - 30 second timeout per test
 - Node.js environment
 - Separate coverage reporting
+- Automatic test execution on push/PR
+- Coverage upload to Codecov (optional)
+
+The CI workflow:
+
+- Runs on push to main and pull requests
+- Builds all packages before running tests
+- Executes all integration tests
+- Uploads coverage reports (if configured)
 
 ## Best Practices
 

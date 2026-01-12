@@ -41,7 +41,7 @@ async function main() {
 
     // Example 3: Hybrid Cache (L1 Memory + L2 File)
     console.log('3. Hybrid Cache:');
-    const hybridCache = new HybridCacheProvider(fileCache, {
+    new HybridCacheProvider(fileCache, {
       enabled: true,
       maxMemoryCacheEntries: 100,
       memoryCacheExpiration: 300000, // 5 minutes
@@ -52,7 +52,7 @@ async function main() {
 
     // Example 4: Client with caching
     console.log('4. Client with Caching:');
-    const client = new TranslaasClient({
+    new TranslaasClient({
       ...baseOptions,
       cacheMode: CacheMode.Group,
       cacheAbsoluteExpiration: 3600000, // 1 hour

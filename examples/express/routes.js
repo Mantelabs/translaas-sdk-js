@@ -12,7 +12,6 @@ export function createRoutes() {
   // Home page
   router.get('/', async (req, res, next) => {
     try {
-      const projectId = process.env.TRANSLAAS_PROJECT || 'translaas-sdk-samples';
       const appName = await req.translaas.t('common', 'app.name');
       const welcome = await req.translaas.t('common', 'welcome');
       const greeting = await req.translaas.t('messages', 'greeting', undefined, undefined, {

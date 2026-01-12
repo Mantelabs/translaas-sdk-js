@@ -31,7 +31,7 @@ for (const example of examples) {
   console.log('-'.repeat(50));
   try {
     const examplePath = join(__dirname, example.file);
-    const code = readFileSync(examplePath, 'utf-8');
+    readFileSync(examplePath, 'utf-8');
     // Note: In a real scenario, you'd import and run the module
     // For this example, we'll just indicate what would run
     console.log(`✅ ${example.name} example loaded`);

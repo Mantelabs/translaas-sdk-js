@@ -30,14 +30,11 @@ Then edit `.env.local` with your actual credentials:
 # Server-side variables (used in API routes and server components)
 TRANSLAAS_API_KEY=your-api-key-here
 TRANSLAAS_BASE_URL=https://api.translaas.com
-
-# Client-side variables (exposed to browser, used in client components)
-# These must be prefixed with NEXT_PUBLIC_ to be accessible in the browser
-NEXT_PUBLIC_TRANSLAAS_API_KEY=your-api-key-here
-NEXT_PUBLIC_TRANSLAAS_BASE_URL=https://api.translaas.com
 ```
 
-**Note:** Since this example uses both server-side rendering (SSR) and client-side rendering (CSR), you need both sets of variables. The `NEXT_PUBLIC_` prefix is required for variables that need to be accessible in the browser.
+**Security Note:** This example uses a Next.js API proxy route (`/api/proxy/[...path]`) that handles authentication server-side. The API key is **never exposed to the browser** - all client-side requests go through the proxy, which adds the API key server-side. This is the recommended approach for security.
+
+**Important:** Do NOT set `NEXT_PUBLIC_TRANSLAAS_API_KEY` in your `.env.local` file. Any variable prefixed with `NEXT_PUBLIC_` is embedded into the browser bundle and visible to all users, which would expose your API key. The proxy route handles authentication securely on the server.
 
 3. Run the development server:
 

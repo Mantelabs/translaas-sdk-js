@@ -78,6 +78,16 @@ export const defaultMockData: MockTranslationData = {
         error: 'Une erreur est survenue',
       },
     },
+    'test-project.es': {
+      common: {
+        welcome: 'Bienvenido',
+        greeting: 'Hola {name}',
+      },
+      messages: {
+        items: '{count} elementos',
+        error: 'Ocurrió un error',
+      },
+    },
   },
   locales: {
     'test-project': ['en', 'fr', 'es'],
@@ -270,5 +280,58 @@ export function createErrorHandlers(config: MockApiConfig) {
     unauthorized: http.get(`${baseUrl}/api/translations/text`, () => {
       return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }),
+
+    // 503 Service Unavailable
+    serviceUnavailable: http.get(`${baseUrl}/api/translations/*`, () => {
+      return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
+    }),
+
+    // 429 Too Many Requests (rate limiting)
+    rateLimit: http.get(`${baseUrl}/api/translations/text`, () => {
+      return HttpResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': '60',
+          },
+        }
+      );
+    }),
+
+    // Network error simulation
+    networkError: http.get(`${baseUrl}/api/translations/*`, () => {
+      throw new Error('Network error');
+    }),
+
+    // Malformed JSON response
+    malformedJson: http.get(`${baseUrl}/api/translations/group`, () => {
+      return HttpResponse.text('Invalid JSON {', {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }),
+
+    // Empty response
+    emptyResponse: http.get(`${baseUrl}/api/translations/text`, () => {
+      return HttpResponse.text('');
+    }),
   };
+}
+
+/**
+ * Helper to create handlers with custom delays for testing timeout scenarios
+ */
+export function createDelayedHandlers(config: MockApiConfig, delayMs: number) {
+  const { baseUrl, apiKey } = config;
+
+  return [
+    http.get(`${baseUrl}/api/translations/text`, async ({ request }) => {
+      if (apiKey && request.headers.get('X-Api-Key') !== apiKey) {
+        return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
+      }
+
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      return HttpResponse.text('Delayed response');
+    }),
+  ];
 }

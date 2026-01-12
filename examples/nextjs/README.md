@@ -27,10 +27,17 @@ cp .env.local.example .env.local
 Then edit `.env.local` with your actual credentials:
 
 ```env
+# Server-side variables (used in API routes and server components)
 TRANSLAAS_API_KEY=your-api-key-here
 TRANSLAAS_BASE_URL=https://api.translaas.com
-NEXT_PUBLIC_TRANSLAAS_PROJECT=your-project-name
+
+# Client-side variables (exposed to browser, used in client components)
+# These must be prefixed with NEXT_PUBLIC_ to be accessible in the browser
+NEXT_PUBLIC_TRANSLAAS_API_KEY=your-api-key-here
+NEXT_PUBLIC_TRANSLAAS_BASE_URL=https://api.translaas.com
 ```
+
+**Note:** Since this example uses both server-side rendering (SSR) and client-side rendering (CSR), you need both sets of variables. The `NEXT_PUBLIC_` prefix is required for variables that need to be accessible in the browser.
 
 3. Run the development server:
 
@@ -39,6 +46,12 @@ npm run dev
 ```
 
 4. Visit `http://localhost:3000` to see the example.
+
+## SSL Certificate Handling
+
+If you're using a local API server with self-signed certificates (e.g., `https://sdk-api.translaas.local`), Next.js will automatically disable SSL certificate verification for local development. This is only enabled when the `TRANSLAAS_BASE_URL` contains `.local`, `localhost`, or `127.0.0.1`.
+
+**⚠️ Warning:** This should only be used for local development. Never disable SSL verification in production.
 
 ## Project Structure
 

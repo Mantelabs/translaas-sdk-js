@@ -17,6 +17,7 @@ export default async function HomePage() {
     userName: 'Next.js User',
     itemCount: '1',
   });
+  const items = await translaas.t('messages', 'item', 'en', 5);
 
   return (
     <div style={{ maxWidth: '800px', margin: '50px auto', padding: '20px' }}>
@@ -54,6 +55,16 @@ export default async function HomePage() {
           await translaas.t('messages', 'greeting', 'en', undefined, {'{'} userName: 'Next.js User',
           itemCount: '1' {'}'})
         </code>
+      </div>
+
+      <div
+        style={{ background: '#f5f5f5', padding: '15px', margin: '20px 0', borderRadius: '5px' }}
+      >
+        <h2>Pluralization</h2>
+        <p>
+          <strong>Translation:</strong> {items}
+        </p>
+        <code>await translaas.t('messages', 'item', 'en', 5)</code>
       </div>
 
       <div style={{ marginTop: '30px' }}>

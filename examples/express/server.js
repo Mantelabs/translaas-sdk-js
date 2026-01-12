@@ -9,6 +9,15 @@ import express from 'express';
 import { createTranslaasMiddleware } from './middleware.js';
 import { createRoutes } from './routes.js';
 
+// Handle SSL certificate verification for local development
+// Only disable SSL verification if using a local API (e.g., *.local domain)
+const baseUrl = process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com';
+if (baseUrl.includes('.local') || baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) {
+  // Disable SSL certificate verification for local development only
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  console.warn('⚠️  SSL certificate verification disabled for local development');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 

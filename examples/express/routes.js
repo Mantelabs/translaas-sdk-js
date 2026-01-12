@@ -10,14 +10,16 @@ export function createRoutes() {
   const router = express.Router();
 
   // Home page
-  router.get('/', async (req, res) => {
+  router.get('/', async (req, res, next) => {
     try {
       const projectId = process.env.TRANSLAAS_PROJECT || 'translaas-sdk-samples';
+      const appName = await req.translaas.t('common', 'app.name');
       const welcome = await req.translaas.t('common', 'welcome');
       const greeting = await req.translaas.t('messages', 'greeting', undefined, undefined, {
-        userName: 'Visitor',
+        userName: 'Express User',
         itemCount: '1',
       });
+      const items = await req.translaas.t('messages', 'item', undefined, 5);
 
       res.send(`
         <!DOCTYPE html>
@@ -34,6 +36,11 @@ export function createRoutes() {
           <body>
             <h1>🌐 Translaas Express.js Example</h1>
             <div class="example">
+              <h2>App Name</h2>
+              <p><strong>Translation:</strong> ${appName}</p>
+              <p><strong>Code:</strong> <code>await req.translaas.t('common', 'app.name')</code></p>
+            </div>
+            <div class="example">
               <h2>Welcome Message</h2>
               <p><strong>Translation:</strong> ${welcome}</p>
               <p><strong>Code:</strong> <code>await req.translaas.t('common', 'welcome')</code></p>
@@ -41,7 +48,12 @@ export function createRoutes() {
             <div class="example">
               <h2>Greeting with Parameters</h2>
               <p><strong>Translation:</strong> ${greeting}</p>
-              <p><strong>Code:</strong> <code>await req.translaas.t('common', 'greeting', undefined, undefined, { name: 'Visitor' })</code></p>
+              <p><strong>Code:</strong> <code>await req.translaas.t('messages', 'greeting', undefined, undefined, { userName: 'Express User', itemCount: '1' })</code></p>
+            </div>
+            <div class="example">
+              <h2>Pluralization</h2>
+              <p><strong>Translation:</strong> ${items}</p>
+              <p><strong>Code:</strong> <code>await req.translaas.t('messages', 'item', undefined, 5)</code></p>
             </div>
             <h2>Try These Endpoints:</h2>
             <ul>
@@ -63,12 +75,13 @@ export function createRoutes() {
         </html>
       `);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error('Route error:', error);
+      next(error);
     }
   });
 
   // Get translation (language from request)
-  router.get('/api/translate/:group/:entry', async (req, res) => {
+  router.get('/api/translate/:group/:entry', async (req, res, next) => {
     try {
       const { group, entry } = req.params;
       const translation = await req.translaas.t(group, entry);
@@ -79,12 +92,13 @@ export function createRoutes() {
         language: 'auto-resolved',
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error('Translation error:', error);
+      next(error);
     }
   });
 
   // Get translation with explicit language
-  router.get('/api/translate/:group/:entry/:lang', async (req, res) => {
+  router.get('/api/translate/:group/:entry/:lang', async (req, res, next) => {
     try {
       const { group, entry, lang } = req.params;
       const translation = await req.translaas.t(group, entry, lang);
@@ -95,12 +109,13 @@ export function createRoutes() {
         translation,
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error('Translation error:', error);
+      next(error);
     }
   });
 
   // Get available locales
-  router.get('/api/locales', async (req, res) => {
+  router.get('/api/locales', async (req, res, next) => {
     try {
       const { TranslaasClient } = await import('@translaas/core');
       const projectId = process.env.TRANSLAAS_PROJECT || 'translaas-sdk-samples';
@@ -114,7 +129,8 @@ export function createRoutes() {
         locales: locales.locales,
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error('Locales error:', error);
+      next(error);
     }
   });
 

@@ -46,6 +46,12 @@ npm run dev
 
 4. Visit `http://localhost:3000` to see the example in action.
 
+## SSL Certificate Handling
+
+If you're using a local API server with self-signed certificates (e.g., `https://sdk-api.translaas.local`), the server will automatically disable SSL certificate verification for local development. This is only enabled when the `TRANSLAAS_BASE_URL` contains `.local`, `localhost`, or `127.0.0.1`.
+
+**⚠️ Warning:** This should only be used for local development. Never disable SSL verification in production.
+
 ## API Endpoints
 
 - `GET /` - Home page with translations

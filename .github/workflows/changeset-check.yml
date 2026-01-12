@@ -33,19 +33,23 @@ jobs:
 
       - name: Check for Changesets
         run: |
-          # Check if there are any changes to packages
-          if git diff --name-only origin/main...HEAD | grep -q "^packages/"; then
+          # Check if there are any changes to package source code (not just package.json or examples)
+          # Exclude examples directory and only check for actual source code changes
+          PACKAGE_SOURCE_CHANGES=$(git diff --name-only origin/main...HEAD | grep "^packages/" | grep -E "\.(ts|tsx|js|jsx)$" | grep -v "^packages/.*/examples/" || true)
+
+          if [ -n "$PACKAGE_SOURCE_CHANGES" ]; then
             # Check if there are any changeset files
             if ! git diff --name-only origin/main...HEAD | grep -q "^\.changeset/"; then
               echo "❌ No changeset found for package changes!"
               echo "Please create a changeset by running: npm run changeset"
               echo ""
               echo "Changed packages:"
-              git diff --name-only origin/main...HEAD | grep "^packages/" | sed 's|packages/@translaas/||' | sed 's|/.*||' | sort -u
+              echo "$PACKAGE_SOURCE_CHANGES" | sed 's|packages/@translaas/||' | sed 's|/.*||' | sort -u
               exit 1
             else
               echo "✅ Changeset found!"
             fi
           else
-            echo "ℹ️  No package changes detected, skipping changeset check"
+            echo "ℹ️  No package source code changes detected, skipping changeset check"
+            echo "Note: Changes to examples, tests, or package.json only don't require changesets"
           fi

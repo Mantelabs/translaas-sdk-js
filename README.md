@@ -6,6 +6,9 @@
 ![License](https://img.shields.io/npm/l/@translaas/core)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue)
 ![Node.js](https://img.shields.io/node/v/@translaas/core)
+![GitHub stars](https://img.shields.io/github/stars/acuencadev/translaas-sdk-js)
+![GitHub forks](https://img.shields.io/github/forks/acuencadev/translaas-sdk-js)
+![Bundle size](https://img.shields.io/bundlephobia/minzip/@translaas/core)
 
 A strongly-typed, performant, and modular JavaScript/TypeScript SDK for consuming the **Translaas Translation Delivery API**. This SDK provides a clean, easy-to-use way to retrieve translations in your Node.js, browser, and modern JavaScript applications.
 

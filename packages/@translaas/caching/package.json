@@ -1,6 +1,6 @@
 {
   "name": "@translaas/caching",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "In-memory caching abstractions and implementations for the Translaas SDK",
   "type": "module",
   "main": "./dist/index.cjs",

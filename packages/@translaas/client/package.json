@@ -1,6 +1,6 @@
 {
   "name": "@translaas/client",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Core HTTP client implementation for the Translaas Translation Delivery API",
   "type": "module",
   "main": "./dist/index.cjs",

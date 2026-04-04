@@ -273,16 +273,19 @@ npm test
 
 ## API Endpoints
 
-The SDK communicates with the following Translaas API endpoints:
+The SDK targets the Translaas **SDK HTTP API** (default path prefix **`/sdk/v1/translations`**). Override with `TranslaasOptions.sdkTranslationsPathPrefix` if your deployment still uses a legacy prefix.
 
-| Endpoint                    | Method | Purpose                             |
-| --------------------------- | ------ | ----------------------------------- |
-| `/api/translations/text`    | GET    | Get single translation entry        |
-| `/api/translations/group`   | GET    | Get all translations for a group    |
-| `/api/translations/project` | GET    | Get all translations for a project  |
-| `/api/translations/locales` | GET    | Get available locales for a project |
+| Endpoint                              | Method | Purpose                                     |
+| ------------------------------------- | ------ | ------------------------------------------- |
+| `/sdk/v1/translations/text`           | GET    | Get a single translation (`text/plain`)     |
+| `/sdk/v1/translations/group`          | GET    | Get all entries in a group (JSON)           |
+| `/sdk/v1/translations/project`        | GET    | Get all groups for a project (JSON)         |
+| `/sdk/v1/translations/locales`        | GET    | Get available locales for a project (JSON)  |
+| `/sdk/v1/translations/report-missing` | POST   | Report missing keys (JSON body, `202`)      |
+| `/sdk/v1/translations/offline-cache`  | GET    | Download offline bundle (`application/zip`) |
+| `/api/v1/api-keys/validate`           | GET    | Validate API key (not under `/sdk/`)        |
 
-**Note:** All endpoints use GET requests with JSON request bodies.
+**Note:** Translation GET endpoints use query parameters and the `X-Api-Key` header. The text endpoint returns plain text; other translation endpoints return JSON.
 
 ## Authentication
 

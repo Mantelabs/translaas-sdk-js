@@ -60,10 +60,10 @@ npx vitest run --config vitest.config.integration.ts tests/integration/basic-tra
 
 The integration tests use [MSW (Mock Service Worker)](https://mswjs.io/) to mock the Translaas API. The mock server is configured in `tests/setup/mock-api.ts` and provides handlers for:
 
-- `GET /api/translations/text` - Single translation entry
-- `GET /api/translations/group` - Translation group
-- `GET /api/translations/project` - Translation project
-- `GET /api/translations/locales` - Project locales
+- `GET /sdk/v1/translations/text` - Single translation entry
+- `GET /sdk/v1/translations/group` - Translation group
+- `GET /sdk/v1/translations/project` - Translation project
+- `GET /sdk/v1/translations/locales` - Project locales
 
 ### Mock API Configuration
 
@@ -198,7 +198,7 @@ it('should use file cache', async () => {
 import { http, HttpResponse } from 'msw';
 
 server.use(
-  http.get(`${mockConfig.baseUrl}/api/translations/text`, () => {
+  http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, () => {
     return HttpResponse.text('Custom response');
   })
 );

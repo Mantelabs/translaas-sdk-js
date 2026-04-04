@@ -87,6 +87,9 @@ Each example includes instructions for configuration. Generally, you'll need to:
 1. Set up environment variables (`.env` file)
 2. Provide your Translaas API key
 3. Configure the base URL
+4. Set a project id (`TRANSLAAS_PROJECT`, `NEXT_PUBLIC_TRANSLAAS_PROJECT`, or `VITE_TRANSLAAS_PROJECT`) when your API key is **not** project-scoped, so `GET /sdk/v1/translations/text` receives a `project` query parameter
+
+The SDK calls the Translaas API under **`/sdk/v1/translations/...`** by default (see root `README.md`). Local dev proxies (Next.js `/api/proxy`, Vite `/sdk`) forward those paths to your `TRANSLAAS_BASE_URL` / `VITE_TRANSLAAS_BASE_URL`.
 
 ## Common Use Cases
 
@@ -98,6 +101,7 @@ import { TranslaasService } from '@translaas/core';
 const service = new TranslaasService({
   apiKey: 'your-api-key',
   baseUrl: 'https://api.translaas.com',
+  defaultProjectId: 'your-project-slug',
   defaultLanguage: 'en',
 });
 
@@ -112,6 +116,7 @@ import { TranslaasService, CacheMode } from '@translaas/core';
 const service = new TranslaasService({
   apiKey: 'your-api-key',
   baseUrl: 'https://api.translaas.com',
+  defaultProjectId: 'your-project-slug',
   cacheMode: CacheMode.Group,
   cacheAbsoluteExpiration: 3600000, // 1 hour
 });
@@ -130,6 +135,7 @@ import {
 const service = new TranslaasService({
   apiKey: 'your-api-key',
   baseUrl: 'https://api.translaas.com',
+  defaultProjectId: 'your-project-slug',
   languageResolver: new LanguageResolver([
     new RequestLanguageProvider(req),
     new DefaultLanguageProvider('en'),

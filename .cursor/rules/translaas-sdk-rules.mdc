@@ -391,11 +391,10 @@ async getEntryAsync(group: string, entry: string, lang: string): Promise<string>
 
 // 3. REFACTOR: Improve implementation while keeping tests green
 async getEntryAsync(group: string, entry: string, lang: string): Promise<string> {
-  const requestBody = { group, entry, lang };
-  const response = await fetch(`${this.baseUrl}/api/translations/text`, {
+  const params = new URLSearchParams({ group, entry, lang });
+  const response = await fetch(`${this.baseUrl}/sdk/v1/translations/text?${params}`, {
     method: 'GET',
-    headers: { 'X-Api-Key': this.apiKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify(requestBody),
+    headers: { 'X-Api-Key': this.apiKey, Accept: 'text/plain' },
   });
   if (!response.ok) {
     throw new TranslaasApiException(`API error: ${response.statusText}`, response.status);
@@ -737,13 +736,13 @@ Before submitting code:
 ### HTTP Request Pattern
 
 ```typescript
-const response = await fetch(`${this.options.baseUrl}/api/translations/text`, {
+const url = `${this.options.baseUrl}/sdk/v1/translations/text?${queryParams}`;
+const response = await fetch(url, {
   method: 'GET',
   headers: {
     'X-Api-Key': this.options.apiKey,
-    'Content-Type': 'application/json',
+    Accept: 'text/plain',
   },
-  body: JSON.stringify(requestBody),
   signal: cancellationToken,
 });
 

@@ -17,9 +17,9 @@ export interface ITranslaasClient {
   /**
    * Gets a single translation entry as plain text.
    *
-   * If the 6th argument is an {@link AbortSignal}, it is treated as the cancellation token
+   * If the 6th argument is an {@link https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal | AbortSignal}, it is treated as the cancellation token
    * (omit `project` in that position). Otherwise the 6th argument is an explicit `project`
-   * query value; {@link TranslaasOptions.defaultProjectId} is used when omitted.
+   * query value; `defaultProjectId` on the options passed to {@link TranslaasClient} is used when omitted.
    */
   getEntryAsync(
     group: string,

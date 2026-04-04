@@ -300,55 +300,20 @@ const options: TranslaasOptions = {
 
 ## Examples
 
-We provide example applications demonstrating how to use the Translaas SDK in different environments:
+Standalone sample applications (Node.js, Express, Next.js, browser, and similar) live in **[translaas-sdk-examples](https://github.com/acuencadev/translaas-sdk-examples)**.
 
-### Node.js Example
+For minimal usage inside your own project, see **Quick Start** and **Configuration** above. Framework helpers ship in **`@translaas/extensions`** (Express, Next.js, and related tooling).
 
-Basic Node.js application showing translation lookups, caching, and error handling.
+## API documentation
 
-```bash
-cd examples/nodejs
-npm install
-npm start
-```
-
-[View Node.js Example →](examples/nodejs/)
-
-### Express.js Example
-
-Express.js server with middleware integration and automatic language resolution from HTTP requests.
+Generate the HTML API reference locally with [TypeDoc](https://typedoc.org/) (output is written to `docs/api/`, which is gitignored):
 
 ```bash
-cd examples/express
 npm install
-npm start
+npm run docs
 ```
 
-[View Express.js Example →](examples/express/)
-
-### Next.js Example
-
-Next.js application with React components, server-side rendering, and client-side rendering.
-
-```bash
-cd examples/nextjs
-npm install
-npm run dev
-```
-
-[View Next.js Example →](examples/nextjs/)
-
-### Browser Example
-
-Vanilla JavaScript browser application with localStorage caching and browser language detection.
-
-```bash
-cd examples/browser
-npm install
-npm start
-```
-
-[View Browser Example →](examples/browser/)
+Open `docs/api/index.html` in a browser.
 
 ## License
 

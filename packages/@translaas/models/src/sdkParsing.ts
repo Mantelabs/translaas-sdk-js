@@ -11,7 +11,7 @@ const PROJECT_ROOT_METADATA = new Set([
 ]);
 
 /**
- * Appends SDK query params to an existing {@link URLSearchParams} instance.
+ * Appends SDK query params to an existing {@link https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams | URLSearchParams} instance.
  */
 export function appendSdkTranslationQueryParams(
   target: URLSearchParams,
@@ -34,8 +34,8 @@ export function appendSdkTranslationQueryParams(
 }
 
 /**
- * Parses `GET …/group` JSON: {@link TranslationGroup} plus optional `entryContext` / `version` / `generatedAt`
- * from {@link GetGroupTranslationsResponse}. Supports legacy bare entry maps for backward compatibility.
+ * Parses `GET …/group` JSON into a {@link TranslationGroup}, including optional `entryContext`, `version`, and
+ * `generatedAt` when present in the response envelope. Supports legacy bare entry maps for backward compatibility.
  */
 export function parseGroupTranslationsResponse(raw: unknown): TranslationGroup {
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {

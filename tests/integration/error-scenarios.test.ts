@@ -40,7 +40,7 @@ describe('Error Scenarios', () => {
   describe('API Error Handling', () => {
     it('should handle 404 Not Found', async () => {
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/text`, () => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, () => {
           return HttpResponse.text('Not found', { status: 404 });
         })
       );
@@ -53,7 +53,7 @@ describe('Error Scenarios', () => {
 
     it('should handle 500 Internal Server Error', async () => {
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/text`, () => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, () => {
           return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
         })
       );
@@ -73,7 +73,7 @@ describe('Error Scenarios', () => {
 
     it('should handle 401 Unauthorized', async () => {
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/text`, () => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, () => {
           return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
         })
       );
@@ -86,7 +86,7 @@ describe('Error Scenarios', () => {
 
     it('should handle invalid API key', async () => {
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/text`, ({ request }) => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, ({ request }) => {
           if (request.headers.get('X-Api-Key') !== 'test-api-key') {
             return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
           }
@@ -108,7 +108,7 @@ describe('Error Scenarios', () => {
   describe('Network Error Handling', () => {
     it('should handle network errors', async () => {
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/text`, () => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, () => {
           throw new Error('Network error');
         })
       );
@@ -123,7 +123,7 @@ describe('Error Scenarios', () => {
       // Use a different base URL that won't be handled by MSW
       // Configure MSW to not handle this request
       server.use(
-        http.get('https://nonexistent-api.example.com/api/translations/text', () => {
+        http.get('https://nonexistent-api.example.com/sdk/v1/translations/text', () => {
           // Don't handle - let it fail naturally
           return HttpResponse.error();
         })
@@ -141,7 +141,7 @@ describe('Error Scenarios', () => {
   describe('Timeout Scenarios', () => {
     it('should handle request timeout', async () => {
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/text`, async () => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, async () => {
           // Simulate long delay
           await new Promise(resolve => setTimeout(resolve, 10000));
           return HttpResponse.text('Should timeout');
@@ -160,7 +160,7 @@ describe('Error Scenarios', () => {
       const abortController = new AbortController();
 
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/text`, async () => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, async () => {
           await new Promise(resolve => setTimeout(resolve, 1000));
           return HttpResponse.text('Should be cancelled');
         })
@@ -225,7 +225,7 @@ describe('Error Scenarios', () => {
 
     it('should propagate API errors from client', async () => {
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/text`, () => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, () => {
           return HttpResponse.text('Not found', { status: 404 });
         })
       );
@@ -242,7 +242,7 @@ describe('Error Scenarios', () => {
   describe('Malformed Response Handling', () => {
     it('should handle invalid JSON in group response', async () => {
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/group`, () => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/group`, () => {
           return HttpResponse.text('Invalid JSON', {
             headers: { 'Content-Type': 'application/json' },
           });
@@ -255,7 +255,7 @@ describe('Error Scenarios', () => {
 
     it('should handle empty response', async () => {
       server.use(
-        http.get(`${mockConfig.baseUrl}/api/translations/text`, () => {
+        http.get(`${mockConfig.baseUrl}/sdk/v1/translations/text`, () => {
           return HttpResponse.text('');
         })
       );

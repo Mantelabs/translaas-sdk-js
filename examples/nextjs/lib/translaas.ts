@@ -1,7 +1,10 @@
 /**
  * Translaas Service Setup for Next.js
  *
- * Creates and configures TranslaasService instances for server and client use
+ * Creates and configures TranslaasService instances for server and client use.
+ * SDK HTTP routes default to `/sdk/v1/translations/...` on the upstream API; the browser
+ * uses `baseUrl` `${origin}/api/proxy`, so requests hit `/api/proxy/sdk/v1/translations/...`
+ * and the proxy forwards them unchanged to `TRANSLAAS_BASE_URL`.
  */
 
 // Handle SSL certificate verification for local development

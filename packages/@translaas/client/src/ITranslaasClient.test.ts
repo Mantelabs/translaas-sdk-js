@@ -55,6 +55,30 @@ describe('ITranslaasClient', () => {
       });
       expect(typeof client.getProjectLocalesAsync).toBe('function');
     });
+
+    it('should have reportMissingKeysAsync method', () => {
+      const client = new TranslaasClient({
+        apiKey: 'test-key',
+        baseUrl: 'https://api.example.com',
+      });
+      expect(typeof client.reportMissingKeysAsync).toBe('function');
+    });
+
+    it('should have getOfflineCacheZipAsync method', () => {
+      const client = new TranslaasClient({
+        apiKey: 'test-key',
+        baseUrl: 'https://api.example.com',
+      });
+      expect(typeof client.getOfflineCacheZipAsync).toBe('function');
+    });
+
+    it('should have validateApiKeyAsync method', () => {
+      const client = new TranslaasClient({
+        apiKey: 'test-key',
+        baseUrl: 'https://api.example.com',
+      });
+      expect(typeof client.validateApiKeyAsync).toBe('function');
+    });
   });
 
   describe('method signatures', () => {

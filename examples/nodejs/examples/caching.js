@@ -20,6 +20,7 @@ async function main() {
   const baseOptions = {
     apiKey: process.env.TRANSLAAS_API_KEY,
     baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
+    defaultProjectId: process.env.TRANSLAAS_PROJECT || 'translaas-sdk-samples',
   };
 
   try {

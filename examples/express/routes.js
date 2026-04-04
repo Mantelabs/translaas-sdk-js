@@ -121,6 +121,7 @@ export function createRoutes() {
       const client = new TranslaasClient({
         apiKey: process.env.TRANSLAAS_API_KEY,
         baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
+        defaultProjectId: projectId,
       });
       const locales = await client.getProjectLocalesAsync(projectId);
       res.json({

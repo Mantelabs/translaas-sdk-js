@@ -25,9 +25,12 @@ export function createTranslaasMiddleware() {
       ]);
 
       // Create a service instance for this request
+      const defaultProjectId = process.env.TRANSLAAS_PROJECT;
+
       req.translaas = new TranslaasService({
         apiKey: process.env.TRANSLAAS_API_KEY,
         baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
+        ...(defaultProjectId ? { defaultProjectId } : {}),
         languageResolver: requestResolver,
         defaultLanguage: process.env.TRANSLAAS_DEFAULT_LANGUAGE || 'en',
         cacheMode: CacheMode.Group,

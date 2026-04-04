@@ -11,13 +11,14 @@ import { TranslaasService, TranslaasClient, CacheMode } from '@translaas/core';
 async function main() {
   console.log('=== Translaas SDK Node.js Sample ===\n');
 
-  const projectId = 'translaas-sdk-samples';
+  const projectId = process.env.TRANSLAAS_PROJECT || 'translaas-sdk-samples';
   const defaultLanguage = process.env.TRANSLAAS_DEFAULT_LANGUAGE || 'en';
 
   // Initialize the service
   const service = new TranslaasService({
     apiKey: process.env.TRANSLAAS_API_KEY,
     baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
+    defaultProjectId: projectId,
     defaultLanguage,
     cacheMode: CacheMode.Group,
     cacheAbsoluteExpiration: 3600000, // 1 hour
@@ -29,6 +30,7 @@ async function main() {
   const client = new TranslaasClient({
     apiKey: process.env.TRANSLAAS_API_KEY,
     baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
+    defaultProjectId: projectId,
   });
 
   console.log(`Default Language (from .env): ${defaultLanguage}\n`);

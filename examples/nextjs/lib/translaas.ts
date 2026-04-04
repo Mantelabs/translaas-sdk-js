@@ -60,9 +60,13 @@ export function createServerService(request?: RequestLike) {
       ])
     : undefined;
 
+  const defaultProjectId =
+    process.env.TRANSLAAS_PROJECT || process.env.NEXT_PUBLIC_TRANSLAAS_PROJECT;
+
   return new TranslaasService({
     apiKey,
     baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
+    ...(defaultProjectId ? { defaultProjectId } : {}),
     languageResolver: resolver,
     defaultLanguage,
     cacheMode: CacheMode.Group,
@@ -94,12 +98,14 @@ export function createClientService() {
   // Always use the proxy route - it handles authentication server-side
   // This ensures API keys are never exposed to the browser
   const serviceBaseUrl = `${baseUrl}/api/proxy`;
+  const defaultProjectId = process.env.NEXT_PUBLIC_TRANSLAAS_PROJECT;
 
   return new TranslaasService({
     // API key is handled by the proxy route server-side
     // Using a placeholder since the proxy adds the real key
     apiKey: 'proxy-handled',
     baseUrl: serviceBaseUrl,
+    ...(defaultProjectId ? { defaultProjectId } : {}),
     defaultLanguage: 'en',
     // Don't use file-based caching on client side - webpack will exclude Node.js modules
     cacheMode: CacheMode.None, // Use in-memory cache only for client-side

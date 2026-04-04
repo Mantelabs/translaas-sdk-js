@@ -29,6 +29,7 @@ async function main() {
   const client = new TranslaasClient({
     apiKey: process.env.TRANSLAAS_API_KEY || 'invalid-key',
     baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
+    defaultProjectId: process.env.TRANSLAAS_PROJECT || 'translaas-sdk-samples',
   });
 
   try {
@@ -66,6 +67,7 @@ async function main() {
   const service = new TranslaasService({
     apiKey: process.env.TRANSLAAS_API_KEY,
     baseUrl: process.env.TRANSLAAS_BASE_URL || 'https://api.translaas.com',
+    defaultProjectId: process.env.TRANSLAAS_PROJECT || 'translaas-sdk-samples',
     defaultLanguage: 'en',
   });
 

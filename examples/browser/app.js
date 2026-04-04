@@ -17,6 +17,8 @@ import {
 // For this example, you need to configure your API credentials in .env file or update these values
 const TRANSLAAS_API_KEY = import.meta.env?.VITE_TRANSLAAS_API_KEY || 'your-api-key-here';
 const TRANSLAAS_BASE_URL_ENV = import.meta.env?.VITE_TRANSLAAS_BASE_URL || 'https://api.translaas.com';
+const TRANSLAAS_PROJECT =
+  import.meta.env?.VITE_TRANSLAAS_PROJECT || 'translaas-sdk-samples';
 
 // In development, use relative URL to leverage Vite proxy (avoids CORS issues)
 // The proxy intercepts /api/* requests and forwards them to the actual API server
@@ -42,6 +44,7 @@ const languageResolver = new LanguageResolver([
 const translaas = new TranslaasService({
   apiKey: TRANSLAAS_API_KEY,
   baseUrl: TRANSLAAS_BASE_URL,
+  defaultProjectId: TRANSLAAS_PROJECT,
   languageResolver,
   defaultLanguage: 'en',
   offlineCache: {

@@ -547,6 +547,93 @@ describe('TranslaasClient', () => {
     });
   });
 
+  describe('getOfflineCacheZipAsync', () => {
+    it('should GET offline-cache with project and return ArrayBuffer', async () => {
+      const bytes = new Uint8Array([0x50, 0x4b, 0x03, 0x04]).buffer;
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => bytes,
+      } as Response);
+
+      const client = new TranslaasClient(defaultOptions);
+      const result = await client.getOfflineCacheZipAsync('acme-proj');
+
+      expect(result).toBeInstanceOf(ArrayBuffer);
+      expect(new Uint8Array(result)).toEqual(new Uint8Array(bytes));
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toBe(
+        'https://api.example.com/sdk/v1/translations/offline-cache?project=acme-proj'
+      );
+      expect(init).toMatchObject({
+        method: 'GET',
+        headers: expect.objectContaining({
+          'X-Api-Key': 'test-api-key',
+          Accept: 'application/zip, application/octet-stream;q=0.9, */*;q=0.8',
+        }),
+      });
+    });
+
+    it('should append sdk query params when provided', async () => {
+      const bytes = new ArrayBuffer(0);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => bytes,
+      } as Response);
+
+      const client = new TranslaasClient(defaultOptions);
+      await client.getOfflineCacheZipAsync('p1', { channel: 'prod', v: '2' });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('/sdk/v1/translations/offline-cache?');
+      expect(url).toContain('project=p1');
+      expect(url).toContain('channel=prod');
+      expect(url).toContain('v=2');
+    });
+
+    it('should merge defaultSdkQuery from options', async () => {
+      const bytes = new ArrayBuffer(0);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => bytes,
+      } as Response);
+
+      const client = new TranslaasClient({
+        ...defaultOptions,
+        defaultSdkQuery: { channel: 'staging', v: '1' },
+      });
+      await client.getOfflineCacheZipAsync('p1', { v: 'override' });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('channel=staging');
+      expect(url).toContain('v=override');
+    });
+
+    it('should throw TranslaasApiException when response is not ok', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => '',
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      await expect(client.getOfflineCacheZipAsync('missing')).rejects.toThrow(
+        TranslaasApiException
+      );
+    });
+
+    it('should handle cancellation token', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+
+      const client = new TranslaasClient(defaultOptions);
+      await expect(
+        client.getOfflineCacheZipAsync('p1', undefined, abortController.signal)
+      ).rejects.toThrow();
+    });
+  });
+
   describe('error handling', () => {
     it('should parse JSON error messages when available', async () => {
       mockFetch.mockResolvedValueOnce({

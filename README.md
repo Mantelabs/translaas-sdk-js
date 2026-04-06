@@ -26,6 +26,7 @@ A strongly-typed, performant, and modular JavaScript/TypeScript SDK for consumin
 - ✅ **Modular Design** - Use only what you need with separate npm packages
 - ✅ **Async/Await** - Fully asynchronous API for optimal performance
 - ✅ **ES Modules** - Native ES module support with CommonJS compatibility
+- ✅ **SDK v1 HTTP API** - Uses `/sdk/v1/translations` by default (text, group, project, locales, report-missing, offline bundle) plus optional **`GET /api/v1/api-keys/validate`**
 
 ## Installation
 
@@ -99,13 +100,20 @@ import { TranslaasClient, TranslaasOptions } from '@translaas/core';
 
 const options: TranslaasOptions = {
   apiKey: 'your-api-key-here',
-  baseUrl: 'https://api.translaas.com',
+  baseUrl: 'https://api.translaas.com', // host only — do not append /api or /sdk
+  // When your API key is not tied to a single project, the text endpoint requires `project`:
+  defaultProjectId: 'my-project-slug',
 };
 
 const client = new TranslaasClient(options);
 
-// Get a single translation entry
+// Single string entry (plain text)
 const translation = await client.getEntryAsync('common', 'welcome', 'en');
+
+// Group / project / locales use an explicit project id as the first argument
+const group = await client.getGroupAsync('my-project-slug', 'common', 'en');
+const project = await client.getProjectAsync('my-project-slug', 'en');
+const locales = await client.getProjectLocalesAsync('my-project-slug');
 ```
 
 ## Configuration
@@ -128,6 +136,7 @@ const translaas = new TranslaasService(options);
 
 ```typescript
 import { TranslaasService, TranslaasOptions, CacheMode, LanguageCodes } from '@translaas/core';
+import { LanguageResolver, DefaultLanguageProvider } from '@translaas/extensions';
 
 const options: TranslaasOptions = {
   // Required: API key and base URL
@@ -137,13 +146,32 @@ const options: TranslaasOptions = {
   // Optional: Default language fallback
   defaultLanguage: LanguageCodes.English,
 
+  // Optional: Automatic language (see @translaas/extensions for more providers)
+  languageResolver: new LanguageResolver([new DefaultLanguageProvider('en')]),
+
   // Optional: Caching configuration
   cacheMode: CacheMode.Group,
   cacheAbsoluteExpiration: 3600000, // 1 hour in milliseconds
   cacheSlidingExpiration: 900000, // 15 minutes in milliseconds
 
-  // Optional: HTTP Client timeout
+  // Optional: HTTP client timeout
   timeout: 30000, // 30 seconds in milliseconds
+
+  // Optional: SDK v1 — default project for GET …/text when the key is not project-scoped
+  defaultProjectId: 'my-project-slug',
+
+  // Optional: SDK v1 — default query params merged into translation requests
+  defaultSdkQuery: {
+    channel: 'production',
+    v: '2025-01-01',
+    includeContext: false,
+  },
+
+  // Optional: only if your gateway still serves legacy paths (migration)
+  // sdkTranslationsPathPrefix: '/api/translations',
+
+  // Optional: offline / file-backed client cache (see TypeDoc for OfflineCacheOptions)
+  // offlineCache: { enabled: true, cacheDirectory: './.translaas-cache' },
 };
 
 const translaas = new TranslaasService(options);
@@ -151,15 +179,37 @@ const translaas = new TranslaasService(options);
 
 **Configuration Options:**
 
-| Option                    | Required        | Description                                                                                |
-| ------------------------- | --------------- | ------------------------------------------------------------------------------------------ |
-| `apiKey`                  | ✅ **Required** | Your Translaas API key                                                                     |
-| `baseUrl`                 | ✅ **Required** | Base URL for the Translaas API (do NOT include `/api`)                                     |
-| `defaultLanguage`         | ⚪ Optional     | Default language code fallback (e.g., `LanguageCodes.English`)                             |
-| `cacheMode`               | ⚪ Optional     | Caching mode (`CacheMode.None`, `CacheMode.Entry`, `CacheMode.Group`, `CacheMode.Project`) |
-| `cacheAbsoluteExpiration` | ⚪ Optional     | Absolute cache expiration time (milliseconds)                                              |
-| `cacheSlidingExpiration`  | ⚪ Optional     | Sliding cache expiration time (milliseconds)                                               |
-| `timeout`                 | ⚪ Optional     | HTTP client timeout (milliseconds)                                                         |
+| Option                      | Required        | Description                                                                                                                                |
+| --------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apiKey`                    | ✅ **Required** | Your Translaas API key                                                                                                                     |
+| `baseUrl`                   | ✅ **Required** | API host root (e.g. `https://api.translaas.com`) — **no** trailing `/sdk` or `/api`                                                        |
+| `sdkTranslationsPathPrefix` | ⚪ Optional     | Prefix for SDK routes (default **`/sdk/v1/translations`**) — override only during legacy or proxy migration                                |
+| `defaultProjectId`          | ⚪ Optional     | Default `project` query for **text** when the key is not project-scoped; method-level `project` overrides                                  |
+| `defaultSdkQuery`           | ⚪ Optional     | Default **`channel`**, snapshot **`v`**, and **`includeContext`** merged into translation HTTP calls (see also per-method `sdkQuery` args) |
+| `defaultLanguage`           | ⚪ Optional     | Fallback language when using `TranslaasService.t()` without an explicit lang                                                               |
+| `languageResolver`          | ⚪ Optional     | Resolves language for `t()` when `lang` is omitted (`@translaas/extensions`)                                                               |
+| `cacheMode`                 | ⚪ Optional     | Client cache mode (`CacheMode.None`, `Entry`, `Group`, `Project`)                                                                          |
+| `cacheAbsoluteExpiration`   | ⚪ Optional     | Absolute cache TTL (ms)                                                                                                                    |
+| `cacheSlidingExpiration`    | ⚪ Optional     | Sliding cache TTL (ms)                                                                                                                     |
+| `timeout`                   | ⚪ Optional     | HTTP request timeout (ms)                                                                                                                  |
+| `offlineCache`              | ⚪ Optional     | File / hybrid offline cache options (`OfflineCacheOptions` in `@translaas/models`)                                                         |
+
+### Project ID and API key scoping
+
+- **Project-scoped keys:** the backend may infer the project from the key; you may omit `defaultProjectId` and explicit `project` on **text** in some setups.
+- **Tenant / multi-project keys:** the **text** endpoint expects a **`project`** query param. Set **`defaultProjectId`** or pass **`project`** as the sixth argument to **`getEntryAsync`**, or use the matching overload on **`TranslaasService.t()`**.
+
+Group, project, and locales methods always take **`project`** as the first parameter.
+
+### Channel, version snapshot, and `includeContext`
+
+Use **`defaultSdkQuery`** on `TranslaasOptions` and/or the optional **`sdkQuery`** argument on **`getGroupAsync`**, **`getProjectAsync`**, **`getProjectLocalesAsync`**, and **`getOfflineCacheZipAsync`** to pass:
+
+- **`channel`** — deployment channel (e.g. `production` / `staging`)
+- **`v`** — snapshot / content version string
+- **`includeContext`** — request entry context maps on **group**, **project**, and **offline-cache** responses when the API supports it
+
+Responses are parsed for both nested JSON and **`format=flat-json`** shapes where applicable.
 
 ### Configuration from Environment Variables
 
@@ -199,7 +249,7 @@ import { LanguageCodes } from '@translaas/core';
 const translation = await translaas.t('ui', 'button.save', LanguageCodes.English);
 
 // Automatic language resolution (requires providers configured)
-const translation = await translaas.t('ui', 'button.save'); // lang omitted
+const translationAuto = await translaas.t('ui', 'button.save'); // lang omitted
 
 // With pluralization
 const message = await translaas.t('messages', 'item.count', LanguageCodes.English, 5);
@@ -286,6 +336,29 @@ The SDK targets the Translaas **SDK HTTP API** (default path prefix **`/sdk/v1/t
 | `/api/v1/api-keys/validate`           | GET    | Validate API key (not under `/sdk/`)        |
 
 **Note:** Translation GET endpoints use query parameters and the `X-Api-Key` header. The text endpoint returns plain text; other translation endpoints return JSON.
+
+The HTTP client does not yet send conditional headers (`If-None-Match` / `ETag`) or interpret **`304 Not Modified`**; caching is handled in-process via **`TranslaasOptions.cacheMode`** and related TTL fields.
+
+### Validate API key, report missing keys, offline bundle
+
+Use **`TranslaasClient`** (also available when you only import **`@translaas/core`**, which re-exports the client package):
+
+```typescript
+// GET /api/v1/api-keys/validate — connectivity / bootstrap
+const validation = await client.validateApiKeyAsync();
+// validation.tenantId, validation.projectId (if scoped), etc.
+
+// POST /sdk/v1/translations/report-missing — 202 Accepted (requires project-scoped key on the server)
+await client.reportMissingKeysAsync({
+  keys: [{ groupKey: 'ui', entryKey: 'new.label', languageIsoCode: 'en' }],
+});
+
+// GET /sdk/v1/translations/offline-cache — ZIP as ArrayBuffer
+const zipBytes = await client.getOfflineCacheZipAsync('my-project-slug', {
+  channel: 'production',
+  v: '2025-01-01',
+});
+```
 
 ## Authentication
 

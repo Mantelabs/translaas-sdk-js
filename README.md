@@ -273,16 +273,19 @@ npm test
 
 ## API Endpoints
 
-The SDK communicates with the following Translaas API endpoints:
+The SDK targets the Translaas **SDK HTTP API** (default path prefix **`/sdk/v1/translations`**). Override with `TranslaasOptions.sdkTranslationsPathPrefix` if your deployment still uses a legacy prefix.
 
-| Endpoint                    | Method | Purpose                             |
-| --------------------------- | ------ | ----------------------------------- |
-| `/api/translations/text`    | GET    | Get single translation entry        |
-| `/api/translations/group`   | GET    | Get all translations for a group    |
-| `/api/translations/project` | GET    | Get all translations for a project  |
-| `/api/translations/locales` | GET    | Get available locales for a project |
+| Endpoint                              | Method | Purpose                                     |
+| ------------------------------------- | ------ | ------------------------------------------- |
+| `/sdk/v1/translations/text`           | GET    | Get a single translation (`text/plain`)     |
+| `/sdk/v1/translations/group`          | GET    | Get all entries in a group (JSON)           |
+| `/sdk/v1/translations/project`        | GET    | Get all groups for a project (JSON)         |
+| `/sdk/v1/translations/locales`        | GET    | Get available locales for a project (JSON)  |
+| `/sdk/v1/translations/report-missing` | POST   | Report missing keys (JSON body, `202`)      |
+| `/sdk/v1/translations/offline-cache`  | GET    | Download offline bundle (`application/zip`) |
+| `/api/v1/api-keys/validate`           | GET    | Validate API key (not under `/sdk/`)        |
 
-**Note:** All endpoints use GET requests with JSON request bodies.
+**Note:** Translation GET endpoints use query parameters and the `X-Api-Key` header. The text endpoint returns plain text; other translation endpoints return JSON.
 
 ## Authentication
 
@@ -297,55 +300,20 @@ const options: TranslaasOptions = {
 
 ## Examples
 
-We provide example applications demonstrating how to use the Translaas SDK in different environments:
+Standalone sample applications (Node.js, Express, Next.js, browser, and similar) live in **[translaas-sdk-examples](https://github.com/acuencadev/translaas-sdk-examples)**.
 
-### Node.js Example
+For minimal usage inside your own project, see **Quick Start** and **Configuration** above. Framework helpers ship in **`@translaas/extensions`** (Express, Next.js, and related tooling).
 
-Basic Node.js application showing translation lookups, caching, and error handling.
+## API documentation
 
-```bash
-cd examples/nodejs
-npm install
-npm start
-```
-
-[View Node.js Example →](examples/nodejs/)
-
-### Express.js Example
-
-Express.js server with middleware integration and automatic language resolution from HTTP requests.
+Generate the HTML API reference locally with [TypeDoc](https://typedoc.org/) (output is written to `docs/api/`, which is gitignored):
 
 ```bash
-cd examples/express
 npm install
-npm start
+npm run docs
 ```
 
-[View Express.js Example →](examples/express/)
-
-### Next.js Example
-
-Next.js application with React components, server-side rendering, and client-side rendering.
-
-```bash
-cd examples/nextjs
-npm install
-npm run dev
-```
-
-[View Next.js Example →](examples/nextjs/)
-
-### Browser Example
-
-Vanilla JavaScript browser application with localStorage caching and browser language detection.
-
-```bash
-cd examples/browser
-npm install
-npm start
-```
-
-[View Browser Example →](examples/browser/)
+Open `docs/api/index.html` in a browser.
 
 ## License
 

@@ -189,6 +189,15 @@ export enum PluralCategory {
 }
 
 /**
+ * Optional query parameters for Translaas SDK translation HTTP APIs (`channel`, snapshot `v`, `includeContext`).
+ */
+export interface SdkTranslationQueryParams {
+  channel?: string;
+  v?: string;
+  includeContext?: boolean;
+}
+
+/**
  * Translaas SDK configuration options.
  *
  * This interface defines all configuration options for the Translaas SDK.
@@ -218,6 +227,25 @@ export interface TranslaasOptions {
    * Trailing slashes are automatically removed.
    */
   baseUrl: string;
+
+  /**
+   * Path prefix for SDK translation HTTP routes (no trailing slash).
+   * Default: `/sdk/v1/translations` per backend OpenAPI.
+   * Override only if your deployment proxies SDK routes under a different prefix
+   * (for example legacy `/api/translations` during migration).
+   */
+  sdkTranslationsPathPrefix?: string;
+
+  /**
+   * Default project id/slug for `GET …/text` when the API key is not project-scoped.
+   * Explicit `project` arguments on client methods take precedence.
+   */
+  defaultProjectId?: string;
+
+  /**
+   * Default SDK query parameters merged into translation requests (`channel`, `v`, etc.).
+   */
+  defaultSdkQuery?: SdkTranslationQueryParams;
 
   /**
    * Cache mode for translation entries.
@@ -471,6 +499,17 @@ export type TranslationEntryValue = string | Record<PluralCategory, string>;
  * }
  * ```
  */
+export interface TranslationGroupMetadata {
+  /**
+   * Per-entry context maps returned when `includeContext=true` on the SDK group endpoint.
+   */
+  entryContext?: Record<string, Record<string, string>>;
+  /** Response bundle version from the API when present. */
+  version?: number;
+  /** ISO timestamp from the API when present. */
+  generatedAt?: string;
+}
+
 export class TranslationGroup {
   /**
    * Dictionary of translation entries
@@ -478,8 +517,18 @@ export class TranslationGroup {
    */
   public entries: Record<string, TranslationEntryValue>;
 
-  constructor(entries: Record<string, TranslationEntryValue> = {}) {
+  public readonly entryContext?: Record<string, Record<string, string>>;
+  public readonly version?: number;
+  public readonly generatedAt?: string;
+
+  constructor(
+    entries: Record<string, TranslationEntryValue> = {},
+    meta?: TranslationGroupMetadata
+  ) {
     this.entries = entries;
+    this.entryContext = meta?.entryContext;
+    this.version = meta?.version;
+    this.generatedAt = meta?.generatedAt;
   }
 
   /**
@@ -652,7 +701,14 @@ export class ProjectLocales {
    */
   public locales: string[];
 
-  constructor(locales: string[] = []) {
+  /** Project identifier from the API response when present. */
+  public readonly project?: string;
+  /** Last-modified timestamp from the API when present. */
+  public readonly lastModifiedUtc?: string;
+
+  constructor(locales: string[] = [], meta?: { project?: string; lastModifiedUtc?: string }) {
     this.locales = locales;
+    this.project = meta?.project;
+    this.lastModifiedUtc = meta?.lastModifiedUtc;
   }
 }

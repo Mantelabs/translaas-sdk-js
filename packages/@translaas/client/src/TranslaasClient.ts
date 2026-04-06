@@ -1,12 +1,25 @@
 import type { ITranslaasClient } from './types';
-import type { TranslaasOptions, TranslationEntryValue } from '@translaas/models';
+import type {
+  TranslaasOptions,
+  SdkTranslationQueryParams,
+  ReportMissingKeysRequestBody,
+  ValidateApiKeyResponse,
+} from '@translaas/models';
 import {
   TranslaasApiException,
   TranslaasConfigurationException,
   TranslationGroup,
   TranslationProject,
   ProjectLocales,
+  parseGroupTranslationsResponse,
+  parseProjectTranslationsResponse,
+  appendSdkTranslationQueryParams,
 } from '@translaas/models';
+
+function normalizeTranslationsPathPrefix(prefix: string): string {
+  const trimmed = prefix.trim().replace(/\/+$/, '');
+  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+}
 
 /**
  * Translaas HTTP client implementation.
@@ -17,54 +30,18 @@ import {
  * This is the core client class for making API requests. For a more convenient API
  * with automatic language resolution, use {@link TranslaasService}.
  *
- * @example
- * ```typescript
- * // Basic usage
- * const client = new TranslaasClient({
- *   apiKey: 'your-api-key',
- *   baseUrl: 'https://api.translaas.com'
- * });
- *
- * const translation = await client.getEntryAsync('common', 'welcome', 'en');
- *
- * // With pluralization
- * const items = await client.getEntryAsync('messages', 'items', 'en', 5);
- *
- * // With parameters
- * const greeting = await client.getEntryAsync('common', 'greeting', 'en', undefined, {
- *   name: 'John'
- * });
- *
- * // Get entire group
- * const group = await client.getGroupAsync('my-project', 'common', 'en');
- *
- * // Get entire project
- * const project = await client.getProjectAsync('my-project', 'en');
- *
- * // Get available locales
- * const locales = await client.getProjectLocalesAsync('my-project');
- * ```
- *
  * @see {@link ITranslaasClient} for the interface definition
  * @see {@link TranslaasService} for a higher-level API with language resolution
  */
 export class TranslaasClient implements ITranslaasClient {
   private readonly baseUrl: string;
+  private readonly translationsBase: string;
 
   /**
    * Creates a new TranslaasClient instance.
    *
    * @param options - Configuration options for the client
    * @throws `TranslaasConfigurationException` if API key or base URL is missing or empty
-   *
-   * @example
-   * ```typescript
-   * const client = new TranslaasClient({
-   *   apiKey: 'your-api-key',
-   *   baseUrl: 'https://api.translaas.com',
-   *   timeout: 30000 // 30 seconds
-   * });
-   * ```
    */
   constructor(private options: TranslaasOptions) {
     if (!options.apiKey || options.apiKey.trim() === '') {
@@ -74,8 +51,10 @@ export class TranslaasClient implements ITranslaasClient {
       throw new TranslaasConfigurationException('Base URL is required');
     }
 
-    // Normalize baseUrl: remove trailing slashes
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
+    this.translationsBase = normalizeTranslationsPathPrefix(
+      options.sdkTranslationsPathPrefix ?? '/sdk/v1/translations'
+    );
   }
 
   /**
@@ -91,6 +70,51 @@ export class TranslaasClient implements ITranslaasClient {
     return queryParams;
   }
 
+  private mergeSdkQuery(extras?: SdkTranslationQueryParams): SdkTranslationQueryParams | undefined {
+    const d = this.options.defaultSdkQuery;
+    if (!d && !extras) {
+      return undefined;
+    }
+    return { ...d, ...extras };
+  }
+
+  /**
+   * Merges default + per-call SDK query params into URLSearchParams.
+   * @param omitIncludeContext — the text endpoint does not use `includeContext`.
+   */
+  private appendMergedSdkQuery(
+    target: URLSearchParams,
+    extras?: SdkTranslationQueryParams,
+    omitIncludeContext?: boolean
+  ): void {
+    const merged = this.mergeSdkQuery(extras);
+    if (!merged) {
+      return;
+    }
+    if (omitIncludeContext) {
+      const { includeContext: _i, ...rest } = merged;
+      appendSdkTranslationQueryParams(target, rest);
+      return;
+    }
+    appendSdkTranslationQueryParams(target, merged);
+  }
+
+  private splitProjectAndCancel(
+    projectOrCancellation?: string | AbortSignal,
+    cancellationToken?: AbortSignal
+  ): { explicitProject?: string; cancel?: AbortSignal } {
+    if (projectOrCancellation === undefined) {
+      return { explicitProject: undefined, cancel: cancellationToken };
+    }
+    if (typeof AbortSignal !== 'undefined' && projectOrCancellation instanceof AbortSignal) {
+      return { explicitProject: undefined, cancel: projectOrCancellation };
+    }
+    return {
+      explicitProject: projectOrCancellation as string,
+      cancel: cancellationToken,
+    };
+  }
+
   /**
    * Creates an AbortSignal with timeout if timeout is configured
    */
@@ -102,14 +126,12 @@ export class TranslaasClient implements ITranslaasClient {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
 
-    // If a cancellation token is provided, abort when it's aborted
     if (cancellationToken) {
       cancellationToken.addEventListener('abort', () => {
         clearTimeout(timeoutId);
         controller.abort();
       });
     } else {
-      // Clean up timeout when signal is aborted
       controller.signal.addEventListener('abort', () => clearTimeout(timeoutId));
     }
 
@@ -126,14 +148,12 @@ export class TranslaasClient implements ITranslaasClient {
     try {
       responseBody = await response.text();
       if (responseBody) {
-        // Try to parse as JSON for better error messages
         try {
           const json = JSON.parse(responseBody);
           if (json.message || json.error) {
             errorMessage = json.message || json.error || errorMessage;
           }
         } catch {
-          // If not JSON, use the text as-is
           errorMessage =
             responseBody.length > 200 ? `${errorMessage} (response too long)` : responseBody;
         }
@@ -173,7 +193,71 @@ export class TranslaasClient implements ITranslaasClient {
 
       return response;
     } catch (error) {
-      // Handle network errors and abort errors
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new TranslaasApiException('Request was cancelled or timed out', undefined, error);
+        }
+        if (error instanceof TranslaasApiException) {
+          throw error;
+        }
+        throw new TranslaasApiException(`Network error: ${error.message}`, undefined, error);
+      }
+      throw new TranslaasApiException('Unknown error occurred', undefined, error as Error);
+    }
+  }
+
+  private async makeRawRequest(url: string, cancellationToken?: AbortSignal): Promise<Response> {
+    const signal = this.createAbortSignal(cancellationToken);
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'X-Api-Key': this.options.apiKey,
+          Accept: 'application/zip, application/octet-stream;q=0.9, */*;q=0.8',
+        },
+        signal,
+      });
+      if (!response.ok) {
+        await this.handleApiError(response);
+      }
+      return response;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new TranslaasApiException('Request was cancelled or timed out', undefined, error);
+        }
+        if (error instanceof TranslaasApiException) {
+          throw error;
+        }
+        throw new TranslaasApiException(`Network error: ${error.message}`, undefined, error);
+      }
+      throw new TranslaasApiException('Unknown error occurred', undefined, error as Error);
+    }
+  }
+
+  private async postJson(
+    endpoint: string,
+    body: unknown,
+    cancellationToken?: AbortSignal,
+    successStatuses: number[] = [202]
+  ): Promise<void> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const signal = this.createAbortSignal(cancellationToken);
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-Api-Key': this.options.apiKey,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(body),
+        signal,
+      });
+      if (!successStatuses.includes(response.status)) {
+        await this.handleApiError(response);
+      }
+    } catch (error) {
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
           throw new TranslaasApiException('Request was cancelled or timed out', undefined, error);
@@ -189,15 +273,6 @@ export class TranslaasClient implements ITranslaasClient {
 
   /**
    * Gets a single translation entry as plain text
-   *
-   * @param group - Translation group name
-   * @param entry - Translation entry key
-   * @param lang - Language code (ISO 639-1)
-   * @param number - Optional number for pluralization
-   * @param parameters - Optional custom parameters for template substitution
-   * @param cancellationToken - Optional AbortSignal to cancel the request
-   * @returns Promise resolving to the translation text
-   * @throws TranslaasApiException if the API request fails
    */
   async getEntryAsync(
     group: string,
@@ -205,21 +280,30 @@ export class TranslaasClient implements ITranslaasClient {
     lang: string,
     number?: number,
     parameters?: Record<string, string>,
+    projectOrCancellation?: string | AbortSignal,
     cancellationToken?: AbortSignal
   ): Promise<string> {
+    const { explicitProject, cancel } = this.splitProjectAndCancel(
+      projectOrCancellation,
+      cancellationToken
+    );
+    const project = explicitProject ?? this.options.defaultProjectId;
+
     const queryParams = this.buildQueryParams({
       group,
       entry,
       lang,
       n: number,
+      ...(project ? { project } : {}),
       ...parameters,
     });
+    this.appendMergedSdkQuery(queryParams, undefined, true);
 
     const response = await this.makeRequest(
-      '/api/translations/text',
+      `${this.translationsBase}/text`,
       queryParams,
       'text/plain',
-      cancellationToken
+      cancel
     );
 
     return await response.text();
@@ -227,20 +311,13 @@ export class TranslaasClient implements ITranslaasClient {
 
   /**
    * Gets all translations for a specific group
-   *
-   * @param project - Project identifier
-   * @param group - Translation group name
-   * @param lang - Language code (ISO 639-1)
-   * @param format - Optional response format (e.g., 'json')
-   * @param cancellationToken - Optional AbortSignal to cancel the request
-   * @returns Promise resolving to a TranslationGroup instance
-   * @throws TranslaasApiException if the API request fails
    */
   async getGroupAsync(
     project: string,
     group: string,
     lang: string,
     format?: string,
+    sdkQuery?: SdkTranslationQueryParams,
     cancellationToken?: AbortSignal
   ): Promise<TranslationGroup> {
     const queryParams = this.buildQueryParams({
@@ -249,32 +326,27 @@ export class TranslaasClient implements ITranslaasClient {
       lang,
       format,
     });
+    this.appendMergedSdkQuery(queryParams, sdkQuery, false);
 
     const response = await this.makeRequest(
-      '/api/translations/group',
+      `${this.translationsBase}/group`,
       queryParams,
       'application/json',
       cancellationToken
     );
 
-    const data = (await response.json()) as Record<string, TranslationEntryValue>;
-    return new TranslationGroup(data);
+    const raw = await response.json();
+    return parseGroupTranslationsResponse(raw);
   }
 
   /**
    * Gets all translations for a project
-   *
-   * @param project - Project identifier
-   * @param lang - Language code (ISO 639-1)
-   * @param format - Optional response format (e.g., 'json')
-   * @param cancellationToken - Optional AbortSignal to cancel the request
-   * @returns Promise resolving to a TranslationProject instance
-   * @throws TranslaasApiException if the API request fails
    */
   async getProjectAsync(
     project: string,
     lang: string,
     format?: string,
+    sdkQuery?: SdkTranslationQueryParams,
     cancellationToken?: AbortSignal
   ): Promise<TranslationProject> {
     const queryParams = this.buildQueryParams({
@@ -282,44 +354,110 @@ export class TranslaasClient implements ITranslaasClient {
       lang,
       format,
     });
+    this.appendMergedSdkQuery(queryParams, sdkQuery, false);
 
     const response = await this.makeRequest(
-      '/api/translations/project',
+      `${this.translationsBase}/project`,
       queryParams,
       'application/json',
       cancellationToken
     );
 
-    const data = (await response.json()) as Record<string, Record<string, TranslationEntryValue>>;
-    return new TranslationProject(data);
+    const raw = await response.json();
+    return parseProjectTranslationsResponse(raw, format);
   }
 
   /**
    * Gets available locales for a project
-   *
-   * @param project - Project identifier
-   * @param cancellationToken - Optional AbortSignal to cancel the request
-   * @returns Promise resolving to a ProjectLocales instance containing available locale codes
-   * @throws TranslaasApiException if the API request fails
    */
   async getProjectLocalesAsync(
     project: string,
+    sdkQuery?: SdkTranslationQueryParams,
     cancellationToken?: AbortSignal
   ): Promise<ProjectLocales> {
     const queryParams = this.buildQueryParams({
       project,
     });
+    this.appendMergedSdkQuery(queryParams, sdkQuery, false);
 
     const response = await this.makeRequest(
-      '/api/translations/locales',
+      `${this.translationsBase}/locales`,
       queryParams,
       'application/json',
       cancellationToken
     );
 
-    const data = (await response.json()) as { locales?: string[] } | string[];
-    // Handle both { locales: [...] } and [...] formats
-    const locales = Array.isArray(data) ? data : data.locales || [];
-    return new ProjectLocales(locales);
+    const raw = await response.json();
+    if (Array.isArray(raw)) {
+      return new ProjectLocales(raw as string[]);
+    }
+    const data = raw as {
+      locales?: string[] | null;
+      project?: string | null;
+      lastModifiedUtc?: string | null;
+    };
+    const locales = data.locales || [];
+    return new ProjectLocales(locales, {
+      project: data.project ?? undefined,
+      lastModifiedUtc: data.lastModifiedUtc ?? undefined,
+    });
+  }
+
+  /**
+   * Reports missing translation keys (requires a project-scoped API key on the server).
+   */
+  async reportMissingKeysAsync(
+    body: ReportMissingKeysRequestBody,
+    cancellationToken?: AbortSignal
+  ): Promise<void> {
+    await this.postJson(`${this.translationsBase}/report-missing`, body, cancellationToken, [202]);
+  }
+
+  /**
+   * Downloads the offline translation bundle as a ZIP (`application/zip`).
+   */
+  async getOfflineCacheZipAsync(
+    project: string,
+    sdkQuery?: SdkTranslationQueryParams,
+    cancellationToken?: AbortSignal
+  ): Promise<ArrayBuffer> {
+    const queryParams = this.buildQueryParams({ project });
+    this.appendMergedSdkQuery(queryParams, sdkQuery, false);
+    const url = `${this.baseUrl}${this.translationsBase}/offline-cache?${queryParams.toString()}`;
+    const response = await this.makeRawRequest(url, cancellationToken);
+    return await response.arrayBuffer();
+  }
+
+  /**
+   * Validates the configured API key (`GET /api/v1/api-keys/validate`).
+   */
+  async validateApiKeyAsync(cancellationToken?: AbortSignal): Promise<ValidateApiKeyResponse> {
+    const url = `${this.baseUrl}/api/v1/api-keys/validate`;
+    const signal = this.createAbortSignal(cancellationToken);
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'X-Api-Key': this.options.apiKey,
+          Accept: 'application/json',
+        },
+        signal,
+      });
+      if (!response.ok) {
+        await this.handleApiError(response);
+      }
+      return (await response.json()) as ValidateApiKeyResponse;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new TranslaasApiException('Request was cancelled or timed out', undefined, error);
+        }
+        if (error instanceof TranslaasApiException) {
+          throw error;
+        }
+        throw new TranslaasApiException(`Network error: ${error.message}`, undefined, error);
+      }
+      throw new TranslaasApiException('Unknown error occurred', undefined, error as Error);
+    }
   }
 }

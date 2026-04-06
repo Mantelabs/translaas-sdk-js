@@ -84,3 +84,30 @@ export interface GetProjectLocalesRequest {
    */
   project: string;
 }
+
+/**
+ * Body item for `POST /sdk/v1/translations/report-missing`.
+ */
+export interface ReportMissingKeyItem {
+  groupKey: string;
+  entryKey: string;
+  languageIsoCode: string;
+}
+
+/**
+ * Body for `POST /sdk/v1/translations/report-missing`.
+ */
+export interface ReportMissingKeysRequestBody {
+  keys: ReportMissingKeyItem[];
+}
+
+/**
+ * Response from `GET /api/v1/api-keys/validate`.
+ */
+export interface ValidateApiKeyResponse {
+  isValid: boolean;
+  tenantId: string;
+  projectId: string;
+  integrationName?: string | null;
+  authenticatedAt: string;
+}

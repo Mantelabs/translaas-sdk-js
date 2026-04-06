@@ -99,13 +99,26 @@ describe('TranslaasClient', () => {
 
       const call = mockFetch.mock.calls[0];
       expect(call[0]).toBe(
-        'https://api.example.com/api/translations/text?group=group&entry=entry&lang=en'
+        'https://api.example.com/sdk/v1/translations/text?group=group&entry=entry&lang=en'
       );
+    });
+
+    it('should use sdkTranslationsPathPrefix when set', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        text: async () => 'ok',
+      });
+      const client = new TranslaasClient({
+        ...defaultOptions,
+        sdkTranslationsPathPrefix: '/api/translations',
+      });
+      await client.getEntryAsync('g', 'e', 'en');
+      expect(mockFetch.mock.calls[0][0]).toContain('/api/translations/text');
     });
   });
 
   describe('getEntryAsync', () => {
-    it('should make GET request to /api/translations/text with query parameters', async () => {
+    it('should make GET request to /sdk/v1/translations/text with query parameters', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         text: async () => 'Welcome',
@@ -117,7 +130,7 @@ describe('TranslaasClient', () => {
       expect(result).toBe('Welcome');
       expect(mockFetch).toHaveBeenCalledTimes(1);
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toContain('/api/translations/text');
+      expect(call[0]).toContain('/sdk/v1/translations/text');
       expect(call[0]).toContain('group=group');
       expect(call[0]).toContain('entry=entry');
       expect(call[0]).toContain('lang=en');
@@ -240,10 +253,32 @@ describe('TranslaasClient', () => {
       const result = await client.getEntryAsync('group', 'entry', 'en');
       expect(result).toBe('Result');
     });
+
+    it('should send project when defaultProjectId is configured', async () => {
+      mockFetch.mockResolvedValueOnce({ ok: true, text: async () => 'x' });
+      const client = new TranslaasClient({
+        ...defaultOptions,
+        defaultProjectId: 'my-proj',
+      });
+      await client.getEntryAsync('common', 'welcome', 'en');
+      expect(mockFetch.mock.calls[0][0]).toContain('project=my-proj');
+    });
+
+    it('should prefer explicit project over defaultProjectId', async () => {
+      mockFetch.mockResolvedValueOnce({ ok: true, text: async () => 'x' });
+      const client = new TranslaasClient({
+        ...defaultOptions,
+        defaultProjectId: 'a',
+      });
+      await client.getEntryAsync('common', 'welcome', 'en', undefined, undefined, 'b');
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('project=b');
+      expect(url).not.toContain('project=a');
+    });
   });
 
   describe('getGroupAsync', () => {
-    it('should make GET request to /api/translations/group and return TranslationGroup', async () => {
+    it('should make GET request to /sdk/v1/translations/group and return TranslationGroup', async () => {
       const mockData = {
         welcome: 'Welcome',
         goodbye: 'Goodbye',
@@ -261,7 +296,7 @@ describe('TranslaasClient', () => {
       expect(result.entries).toEqual(mockData);
       expect(mockFetch).toHaveBeenCalledTimes(1);
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toContain('/api/translations/group');
+      expect(call[0]).toContain('/sdk/v1/translations/group');
       expect(call[0]).toContain('project=project');
       expect(call[0]).toContain('group=group');
       expect(call[0]).toContain('lang=en');
@@ -272,6 +307,18 @@ describe('TranslaasClient', () => {
           Accept: 'application/json',
         },
       });
+    });
+
+    it('should unwrap SDK GetGroupTranslationsResponse envelope', async () => {
+      const entries = { welcome: 'Hi' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ entries, version: 2 }),
+      });
+      const client = new TranslaasClient(defaultOptions);
+      const result = await client.getGroupAsync('p', 'g', 'en');
+      expect(result.entries).toEqual(entries);
+      expect(result.version).toBe(2);
     });
 
     it('should include format parameter when provided', async () => {
@@ -307,7 +354,7 @@ describe('TranslaasClient', () => {
 
       const client = new TranslaasClient(defaultOptions);
       await expect(
-        client.getGroupAsync('project', 'group', 'en', undefined, abortController.signal)
+        client.getGroupAsync('project', 'group', 'en', undefined, undefined, abortController.signal)
       ).rejects.toThrow();
     });
 
@@ -325,7 +372,7 @@ describe('TranslaasClient', () => {
   });
 
   describe('getProjectAsync', () => {
-    it('should make GET request to /api/translations/project and return TranslationProject', async () => {
+    it('should make GET request to /sdk/v1/translations/project and return TranslationProject', async () => {
       const mockData = {
         common: {
           welcome: 'Welcome',
@@ -337,7 +384,7 @@ describe('TranslaasClient', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockData,
+        json: async () => ({ groups: mockData }),
       });
 
       const client = new TranslaasClient(defaultOptions);
@@ -347,7 +394,7 @@ describe('TranslaasClient', () => {
       expect(result.groups).toEqual(mockData);
       expect(mockFetch).toHaveBeenCalledTimes(1);
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toContain('/api/translations/project');
+      expect(call[0]).toContain('/sdk/v1/translations/project');
       expect(call[0]).toContain('project=project');
       expect(call[0]).toContain('lang=en');
       expect(call[1]).toMatchObject({
@@ -390,13 +437,13 @@ describe('TranslaasClient', () => {
 
       const client = new TranslaasClient(defaultOptions);
       await expect(
-        client.getProjectAsync('project', 'en', undefined, abortController.signal)
+        client.getProjectAsync('project', 'en', undefined, undefined, abortController.signal)
       ).rejects.toThrow();
     });
   });
 
   describe('getProjectLocalesAsync', () => {
-    it('should make GET request to /api/translations/locales and return ProjectLocales', async () => {
+    it('should make GET request to /sdk/v1/translations/locales and return ProjectLocales', async () => {
       const mockData = {
         locales: ['en', 'fr', 'es'],
       };
@@ -413,7 +460,7 @@ describe('TranslaasClient', () => {
       expect(result.locales).toEqual(['en', 'fr', 'es']);
       expect(mockFetch).toHaveBeenCalledTimes(1);
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toContain('/api/translations/locales');
+      expect(call[0]).toContain('/sdk/v1/translations/locales');
       expect(call[0]).toContain('project=project');
       expect(call[1]).toMatchObject({
         method: 'GET',
@@ -456,7 +503,133 @@ describe('TranslaasClient', () => {
 
       const client = new TranslaasClient(defaultOptions);
       await expect(
-        client.getProjectLocalesAsync('project', abortController.signal)
+        client.getProjectLocalesAsync('project', undefined, abortController.signal)
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('reportMissingKeysAsync', () => {
+    it('should POST to report-missing and accept 202', async () => {
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 202 });
+      const client = new TranslaasClient(defaultOptions);
+      await client.reportMissingKeysAsync({
+        keys: [{ groupKey: 'g', entryKey: 'e', languageIsoCode: 'en' }],
+      });
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.example.com/sdk/v1/translations/report-missing',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'X-Api-Key': 'test-api-key',
+          }),
+        })
+      );
+    });
+  });
+
+  describe('validateApiKeyAsync', () => {
+    it('should GET /api/v1/api-keys/validate', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          isValid: true,
+          tenantId: 't1',
+          projectId: 'p1',
+          integrationName: 'x',
+          authenticatedAt: '2026-01-01T00:00:00Z',
+        }),
+      });
+      const client = new TranslaasClient(defaultOptions);
+      const res = await client.validateApiKeyAsync();
+      expect(res.tenantId).toBe('t1');
+      expect(mockFetch.mock.calls[0][0]).toBe('https://api.example.com/api/v1/api-keys/validate');
+    });
+  });
+
+  describe('getOfflineCacheZipAsync', () => {
+    it('should GET offline-cache with project and return ArrayBuffer', async () => {
+      const bytes = new Uint8Array([0x50, 0x4b, 0x03, 0x04]).buffer;
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => bytes,
+      } as Response);
+
+      const client = new TranslaasClient(defaultOptions);
+      const result = await client.getOfflineCacheZipAsync('acme-proj');
+
+      expect(result).toBeInstanceOf(ArrayBuffer);
+      expect(new Uint8Array(result)).toEqual(new Uint8Array(bytes));
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toBe(
+        'https://api.example.com/sdk/v1/translations/offline-cache?project=acme-proj'
+      );
+      expect(init).toMatchObject({
+        method: 'GET',
+        headers: expect.objectContaining({
+          'X-Api-Key': 'test-api-key',
+          Accept: 'application/zip, application/octet-stream;q=0.9, */*;q=0.8',
+        }),
+      });
+    });
+
+    it('should append sdk query params when provided', async () => {
+      const bytes = new ArrayBuffer(0);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => bytes,
+      } as Response);
+
+      const client = new TranslaasClient(defaultOptions);
+      await client.getOfflineCacheZipAsync('p1', { channel: 'prod', v: '2' });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('/sdk/v1/translations/offline-cache?');
+      expect(url).toContain('project=p1');
+      expect(url).toContain('channel=prod');
+      expect(url).toContain('v=2');
+    });
+
+    it('should merge defaultSdkQuery from options', async () => {
+      const bytes = new ArrayBuffer(0);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => bytes,
+      } as Response);
+
+      const client = new TranslaasClient({
+        ...defaultOptions,
+        defaultSdkQuery: { channel: 'staging', v: '1' },
+      });
+      await client.getOfflineCacheZipAsync('p1', { v: 'override' });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('channel=staging');
+      expect(url).toContain('v=override');
+    });
+
+    it('should throw TranslaasApiException when response is not ok', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => '',
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      await expect(client.getOfflineCacheZipAsync('missing')).rejects.toThrow(
+        TranslaasApiException
+      );
+    });
+
+    it('should handle cancellation token', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+
+      const client = new TranslaasClient(defaultOptions);
+      await expect(
+        client.getOfflineCacheZipAsync('p1', undefined, abortController.signal)
       ).rejects.toThrow();
     });
   });

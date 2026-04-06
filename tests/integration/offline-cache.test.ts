@@ -65,7 +65,7 @@ describe('Offline Cache Workflows', () => {
 
         // Simulate API failure
         server.use(
-          http.get(`${mockConfig.baseUrl}/api/translations/*`, () => {
+          http.get(`${mockConfig.baseUrl}/sdk/v1/translations/*`, () => {
             return HttpResponse.error();
           })
         );
@@ -87,7 +87,7 @@ describe('Offline Cache Workflows', () => {
       try {
         // Simulate API failure
         server.use(
-          http.get(`${mockConfig.baseUrl}/api/translations/*`, () => {
+          http.get(`${mockConfig.baseUrl}/sdk/v1/translations/*`, () => {
             return HttpResponse.error();
           })
         );
@@ -124,7 +124,7 @@ describe('Offline Cache Workflows', () => {
 
         // Simulate API failure
         server.use(
-          http.get(`${mockConfig.baseUrl}/api/translations/*`, () => {
+          http.get(`${mockConfig.baseUrl}/sdk/v1/translations/*`, () => {
             return HttpResponse.error();
           })
         );
@@ -164,7 +164,7 @@ describe('Offline Cache Workflows', () => {
 
         // Simulate API 500 error
         server.use(
-          http.get(`${mockConfig.baseUrl}/api/translations/project`, () => {
+          http.get(`${mockConfig.baseUrl}/sdk/v1/translations/project`, () => {
             return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
           })
         );
@@ -197,7 +197,7 @@ describe('Offline Cache Workflows', () => {
 
         // Simulate API 404 error
         server.use(
-          http.get(`${mockConfig.baseUrl}/api/translations/project`, () => {
+          http.get(`${mockConfig.baseUrl}/sdk/v1/translations/project`, () => {
             return HttpResponse.json({ error: 'Not found' }, { status: 404 });
           })
         );
@@ -230,7 +230,7 @@ describe('Offline Cache Workflows', () => {
 
         // Simulate network error
         server.use(
-          http.get(`${mockConfig.baseUrl}/api/translations/project`, () => {
+          http.get(`${mockConfig.baseUrl}/sdk/v1/translations/project`, () => {
             throw new Error('Network error');
           })
         );
@@ -290,7 +290,7 @@ describe('Offline Cache Workflows', () => {
 
         // Simulate API failure
         server.use(
-          http.get(`${mockConfig.baseUrl}/api/translations/project`, () => {
+          http.get(`${mockConfig.baseUrl}/sdk/v1/translations/project`, () => {
             return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
           })
         );

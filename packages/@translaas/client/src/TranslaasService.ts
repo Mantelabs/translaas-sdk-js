@@ -125,6 +125,7 @@ export class TranslaasService {
     lang?: string,
     number?: number,
     parameters?: Record<string, string>,
+    projectOrCancellation?: string | AbortSignal,
     cancellationToken?: AbortSignal
   ): Promise<string> {
     let resolvedLang: string | null = null;
@@ -157,6 +158,7 @@ export class TranslaasService {
       resolvedLang,
       number,
       parameters,
+      projectOrCancellation,
       cancellationToken
     );
   }

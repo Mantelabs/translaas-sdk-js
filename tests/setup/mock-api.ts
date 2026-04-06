@@ -5,10 +5,10 @@ import { setupServer } from 'msw/node';
  * Mock API server for integration tests using MSW (Mock Service Worker).
  *
  * Provides handlers for all Translaas API endpoints:
- * - GET /api/translations/text - Single translation entry
- * - GET /api/translations/group - Translation group
- * - GET /api/translations/project - Translation project
- * - GET /api/translations/locales - Project locales
+ * - GET /sdk/v1/translations/text - Single translation entry
+ * - GET /sdk/v1/translations/group - Translation group
+ * - GET /sdk/v1/translations/project - Translation project
+ * - GET /sdk/v1/translations/locales - Project locales
  */
 
 export interface MockApiConfig {
@@ -103,9 +103,11 @@ export function createMockHandlers(
 ) {
   const { baseUrl, apiKey, delay = 0 } = config;
 
+  const tBase = `${baseUrl}/sdk/v1/translations`;
+
   return [
-    // GET /api/translations/text - Single translation entry
-    http.get(`${baseUrl}/api/translations/text`, async ({ request }) => {
+    // GET /sdk/v1/translations/text - Single translation entry
+    http.get(`${tBase}/text`, async ({ request }) => {
       // Check API key
       if (apiKey && request.headers.get('X-Api-Key') !== apiKey) {
         return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
@@ -154,8 +156,8 @@ export function createMockHandlers(
       return HttpResponse.text(translation);
     }),
 
-    // GET /api/translations/group - Translation group
-    http.get(`${baseUrl}/api/translations/group`, async ({ request }) => {
+    // GET /sdk/v1/translations/group - Translation group
+    http.get(`${tBase}/group`, async ({ request }) => {
       if (apiKey && request.headers.get('X-Api-Key') !== apiKey) {
         return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
       }
@@ -183,11 +185,17 @@ export function createMockHandlers(
         await new Promise(resolve => setTimeout(resolve, delay));
       }
 
-      return HttpResponse.json(groupData);
+      return HttpResponse.json({
+        project,
+        group,
+        lang,
+        version: 1,
+        entries: groupData,
+      });
     }),
 
-    // GET /api/translations/project - Translation project
-    http.get(`${baseUrl}/api/translations/project`, async ({ request }) => {
+    // GET /sdk/v1/translations/project - Translation project
+    http.get(`${tBase}/project`, async ({ request }) => {
       if (apiKey && request.headers.get('X-Api-Key') !== apiKey) {
         return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
       }
@@ -214,11 +222,11 @@ export function createMockHandlers(
         await new Promise(resolve => setTimeout(resolve, delay));
       }
 
-      return HttpResponse.json(projectData);
+      return HttpResponse.json({ groups: projectData });
     }),
 
-    // GET /api/translations/locales - Project locales
-    http.get(`${baseUrl}/api/translations/locales`, async ({ request }) => {
+    // GET /sdk/v1/translations/locales - Project locales
+    http.get(`${tBase}/locales`, async ({ request }) => {
       if (apiKey && request.headers.get('X-Api-Key') !== apiKey) {
         return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
       }
@@ -258,36 +266,37 @@ export function createMockServer(config: MockApiConfig, data?: MockTranslationDa
  */
 export function createErrorHandlers(config: MockApiConfig) {
   const { baseUrl } = config;
+  const tBase = `${baseUrl}/sdk/v1/translations`;
 
   return {
     // 500 Internal Server Error
-    serverError: http.get(`${baseUrl}/api/translations/text`, () => {
+    serverError: http.get(`${tBase}/text`, () => {
       return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
     }),
 
     // Network timeout (simulated by long delay)
-    timeout: http.get(`${baseUrl}/api/translations/text`, async () => {
+    timeout: http.get(`${tBase}/text`, async () => {
       await new Promise(resolve => setTimeout(resolve, 60000)); // 60 second delay
       return HttpResponse.text('Should timeout');
     }),
 
     // 404 Not Found
-    notFound: http.get(`${baseUrl}/api/translations/text`, () => {
+    notFound: http.get(`${tBase}/text`, () => {
       return HttpResponse.text('Not found', { status: 404 });
     }),
 
     // 401 Unauthorized
-    unauthorized: http.get(`${baseUrl}/api/translations/text`, () => {
+    unauthorized: http.get(`${tBase}/text`, () => {
       return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }),
 
     // 503 Service Unavailable
-    serviceUnavailable: http.get(`${baseUrl}/api/translations/*`, () => {
+    serviceUnavailable: http.get(`${tBase}/*`, () => {
       return HttpResponse.json({ error: 'Service unavailable' }, { status: 503 });
     }),
 
     // 429 Too Many Requests (rate limiting)
-    rateLimit: http.get(`${baseUrl}/api/translations/text`, () => {
+    rateLimit: http.get(`${tBase}/text`, () => {
       return HttpResponse.json(
         { error: 'Too many requests' },
         {
@@ -300,19 +309,19 @@ export function createErrorHandlers(config: MockApiConfig) {
     }),
 
     // Network error simulation
-    networkError: http.get(`${baseUrl}/api/translations/*`, () => {
+    networkError: http.get(`${tBase}/*`, () => {
       throw new Error('Network error');
     }),
 
     // Malformed JSON response
-    malformedJson: http.get(`${baseUrl}/api/translations/group`, () => {
+    malformedJson: http.get(`${tBase}/group`, () => {
       return HttpResponse.text('Invalid JSON {', {
         headers: { 'Content-Type': 'application/json' },
       });
     }),
 
     // Empty response
-    emptyResponse: http.get(`${baseUrl}/api/translations/text`, () => {
+    emptyResponse: http.get(`${tBase}/text`, () => {
       return HttpResponse.text('');
     }),
   };
@@ -323,9 +332,10 @@ export function createErrorHandlers(config: MockApiConfig) {
  */
 export function createDelayedHandlers(config: MockApiConfig, delayMs: number) {
   const { baseUrl, apiKey } = config;
+  const tBase = `${baseUrl}/sdk/v1/translations`;
 
   return [
-    http.get(`${baseUrl}/api/translations/text`, async ({ request }) => {
+    http.get(`${tBase}/text`, async ({ request }) => {
       if (apiKey && request.headers.get('X-Api-Key') !== apiKey) {
         return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
       }

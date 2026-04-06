@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TranslaasService } from './TranslaasService';
-import { TranslaasConfigurationException } from '@translaas/models';
+import { TranslaasConfigurationException, TranslaasApiException } from '@translaas/models';
 import { LanguageResolver } from '@translaas/extensions';
 import { DefaultLanguageProvider } from '@translaas/extensions';
 import type { ILanguageProvider } from '@translaas/extensions';
@@ -177,6 +177,74 @@ describe('TranslaasService', () => {
         expect.stringContaining('name=John'),
         expect.any(Object)
       );
+    });
+
+    it('should work with pluralization and parameters together', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        text: async () => '5 items',
+      } as Response);
+
+      const service = new TranslaasService(defaultOptions);
+      const result = await service.t('messages', 'items', 'en', 5, { count: '5' });
+
+      expect(result).toBe('5 items');
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('n=5');
+      expect(url).toContain('count=5');
+    });
+
+    it('should forward explicit project id to getEntryAsync', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        text: async () => 'ok',
+      } as Response);
+
+      const service = new TranslaasService(defaultOptions);
+      await service.t('common', 'welcome', 'en', undefined, undefined, 'explicit-proj');
+
+      expect(mockFetch.mock.calls[0][0] as string).toContain('project=explicit-proj');
+    });
+
+    it('should forward AbortSignal when used as sixth argument', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+
+      mockFetch.mockRejectedValueOnce(Object.assign(new Error('Aborted'), { name: 'AbortError' }));
+
+      const service = new TranslaasService(defaultOptions);
+      await expect(
+        service.t('common', 'welcome', 'en', undefined, undefined, abortController.signal)
+      ).rejects.toThrow(TranslaasApiException);
+      expect(mockFetch.mock.calls[0][1]).toMatchObject({
+        signal: abortController.signal,
+      });
+    });
+
+    it('should forward project and cancellation token together', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+
+      mockFetch.mockRejectedValueOnce(Object.assign(new Error('Aborted'), { name: 'AbortError' }));
+
+      const service = new TranslaasService(defaultOptions);
+      await expect(
+        service.t(
+          'common',
+          'welcome',
+          'en',
+          undefined,
+          undefined,
+          'my-project',
+          abortController.signal
+        )
+      ).rejects.toThrow(TranslaasApiException);
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toContain('project=my-project');
+      expect(mockFetch.mock.calls[0][1]).toMatchObject({
+        signal: abortController.signal,
+      });
     });
 
     it('should chain multiple providers in resolver', async () => {

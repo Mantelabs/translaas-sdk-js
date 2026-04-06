@@ -1,28 +1,40 @@
 name: CI
 
+# Default: Ubuntu only (push/PR) to limit Actions spend across many SDK repos.
+# Windows + macOS: run manually — Actions → CI → Run workflow.
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
+  matrix-prep:
+    name: Prepare CI matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo 'matrix={"include":[{"os":"windows-latest","node-version":"20.x"},{"os":"macos-latest","node-version":"20.x"}]}' >> $GITHUB_OUTPUT
+          else
+            echo 'matrix={"include":[{"os":"ubuntu-latest","node-version":"20.x"},{"os":"ubuntu-latest","node-version":"22.x"}]}' >> $GITHUB_OUTPUT
+          fi
+
   build-and-test:
     name: Build and Test (${{ matrix.os }} - Node.js ${{ matrix.node-version }})
+    needs: matrix-prep
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            node-version: '20.x'
-          - os: ubuntu-latest
-            node-version: '22.x'
-          - os: windows-latest
-            node-version: '20.x'
-          - os: macos-latest
-            node-version: '20.x'
+      matrix: ${{ fromJson(needs.matrix-prep.outputs.matrix) }}
 
     steps:
       - name: Checkout code

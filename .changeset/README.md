@@ -61,6 +61,15 @@ Don't create a changeset for:
 - ❌ Build system changes
 - ❌ Documentation-only changes (unless they affect API usage)
 
+## Prerelease mode (`beta`)
+
+The repo may use **prerelease** versioning (e.g. `0.3.0-beta`). While **`.changeset/pre.json`** exists:
+
+- You are in **pre** mode with npm dist-tag **`beta`** (see `pre.json`).
+- After publishing this line, run **`npx changeset pre exit`** when you are ready to return to normal (non-prerelease) versioning.
+
+Do not leave multiple stale changeset files on `main`; consolidate into one release changeset or consume them with `changeset version` so CI does not open conflicting “Version packages” PRs.
+
 ## What Happens Next?
 
 1. Commit your changeset file with your PR

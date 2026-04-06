@@ -1,0 +1,13 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@translaas/caching": "0.3.0-beta",
+    "@translaas/caching-file": "0.3.0-beta",
+    "@translaas/client": "0.3.0-beta",
+    "@translaas/core": "0.3.0-beta",
+    "@translaas/extensions": "0.3.0-beta",
+    "@translaas/models": "0.3.0-beta"
+  },
+  "changesets": []
+}

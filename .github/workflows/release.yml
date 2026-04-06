@@ -11,6 +11,11 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # setup-node + registry-url writes ~/.npmrc with //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}.
+    # changesets/action keeps that file if an auth line exists and does not inject NPM_TOKEN.
+    # Without NODE_AUTH_TOKEN, publishes see an empty token and npm returns a misleading E404.
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     # Skip if this commit is from the changesets action itself to prevent duplicate runs
     # The changesets action uses 'chore: version packages' as the commit message
     if: |

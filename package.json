@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.6.0",
     "@vitest/coverage-v8": "^4.1.2",
     "@vitest/ui": "^4.1.2",
     "eslint": "^9.39.4",
@@ -72,7 +72,7 @@
     "msw": "^2.13.0",
     "prettier": "^3.8.1",
     "typedoc": "^0.28.18",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.0",
     "vitest": "^4.1.2"
   }

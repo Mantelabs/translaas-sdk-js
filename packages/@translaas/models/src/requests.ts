@@ -106,8 +106,8 @@ export interface ReportMissingKeysRequestBody {
  */
 export interface ValidateApiKeyResponse {
   isValid: boolean;
-  tenantId: string;
-  projectId: string;
+  tenantId?: string | null;
+  projectId?: string | null;
   integrationName?: string | null;
   authenticatedAt: string;
 }

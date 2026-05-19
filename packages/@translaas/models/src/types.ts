@@ -1,4 +1,5 @@
 import { PluralResolver } from './PluralResolver';
+import type { SdkTranslationQueryParams } from './requestContext';
 
 /**
  * Language codes constants (ISO 639-1)
@@ -190,12 +191,14 @@ export enum PluralCategory {
 
 /**
  * Optional query parameters for Translaas SDK translation HTTP APIs (`channel`, snapshot `v`, `includeContext`).
+ * @see {@link TranslaasRequestContext} for conditional GET and response metadata.
  */
-export interface SdkTranslationQueryParams {
-  channel?: string;
-  v?: string;
-  includeContext?: boolean;
-}
+export type {
+  SdkTranslationQueryParams,
+  TranslaasRequestContext,
+  OfflineCacheDownloadResult,
+} from './requestContext';
+export { prepareRequestContext, assignResponseContext } from './requestContext';
 
 /**
  * Translaas SDK configuration options.

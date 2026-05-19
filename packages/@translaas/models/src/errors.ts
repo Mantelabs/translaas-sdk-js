@@ -1,6 +1,14 @@
 /**
- * Base exception for all Translaas errors
+ * API error envelope (ProblemDetails-style JSON from the backend).
  */
+export interface TranslaasError {
+  message?: string;
+  code?: string;
+  title?: string;
+  detail?: string;
+  error?: string;
+}
+
 export class TranslaasException extends Error {
   /**
    * Inner exception that caused this error
@@ -28,10 +36,28 @@ export class TranslaasApiException extends TranslaasException {
    */
   public readonly statusCode?: number;
 
-  constructor(message: string, statusCode?: number, innerError?: Error) {
+  /**
+   * Raw response body when available
+   */
+  public readonly responseContent?: string;
+
+  /**
+   * API error code when parsed from JSON envelope
+   */
+  public readonly code?: string;
+
+  constructor(
+    message: string,
+    statusCode?: number,
+    innerError?: Error,
+    responseContent?: string,
+    code?: string
+  ) {
     super(message, innerError);
     this.name = 'TranslaasApiException';
     this.statusCode = statusCode;
+    this.responseContent = responseContent;
+    this.code = code;
   }
 }
 

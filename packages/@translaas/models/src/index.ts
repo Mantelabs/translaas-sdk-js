@@ -1,5 +1,6 @@
 // Export all models and types
 export * from './types';
+export * from './requestContext';
 export * from './sdkParsing';
 export * from './errors';
 export * from './requests';

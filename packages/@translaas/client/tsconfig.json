@@ -13,6 +13,9 @@
     },
     {
       "path": "../extensions"
+    },
+    {
+      "path": "../caching"
     }
   ]
 }

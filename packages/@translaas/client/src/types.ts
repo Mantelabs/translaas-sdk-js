@@ -2,7 +2,8 @@ import type {
   TranslationGroup,
   TranslationProject,
   ProjectLocales,
-  SdkTranslationQueryParams,
+  TranslaasRequestContext,
+  OfflineCacheDownloadResult,
   ReportMissingKeysRequestBody,
   ValidateApiKeyResponse,
 } from '@translaas/models';
@@ -18,8 +19,8 @@ export interface ITranslaasClient {
    * Gets a single translation entry as plain text.
    *
    * If the 6th argument is an {@link https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal | AbortSignal}, it is treated as the cancellation token
-   * (omit `project` in that position). Otherwise the 6th argument is an explicit `project`
-   * query value; `defaultProjectId` on the options passed to {@link TranslaasClient} is used when omitted.
+   * (omit `project` in that position). If it is a {@link TranslaasRequestContext}, conditional GET and snapshot query params are applied.
+   * Otherwise the 6th argument is an explicit `project` query value; `defaultProjectId` on the options passed to {@link TranslaasClient} is used when omitted.
    */
   getEntryAsync(
     group: string,
@@ -27,7 +28,7 @@ export interface ITranslaasClient {
     lang: string,
     number?: number,
     parameters?: Record<string, string>,
-    projectOrCancellation?: string | AbortSignal,
+    projectOrContextOrCancellation?: string | TranslaasRequestContext | AbortSignal,
     cancellationToken?: AbortSignal
   ): Promise<string>;
 
@@ -36,7 +37,7 @@ export interface ITranslaasClient {
     group: string,
     lang: string,
     format?: string,
-    sdkQuery?: SdkTranslationQueryParams,
+    sdkQuery?: TranslaasRequestContext,
     cancellationToken?: AbortSignal
   ): Promise<TranslationGroup>;
 
@@ -44,13 +45,13 @@ export interface ITranslaasClient {
     project: string,
     lang: string,
     format?: string,
-    sdkQuery?: SdkTranslationQueryParams,
+    sdkQuery?: TranslaasRequestContext,
     cancellationToken?: AbortSignal
   ): Promise<TranslationProject>;
 
   getProjectLocalesAsync(
     project: string,
-    sdkQuery?: SdkTranslationQueryParams,
+    sdkQuery?: TranslaasRequestContext,
     cancellationToken?: AbortSignal
   ): Promise<ProjectLocales>;
 
@@ -59,9 +60,15 @@ export interface ITranslaasClient {
     cancellationToken?: AbortSignal
   ): Promise<void>;
 
+  getOfflineCacheAsync(
+    project: string,
+    sdkQuery?: TranslaasRequestContext,
+    cancellationToken?: AbortSignal
+  ): Promise<OfflineCacheDownloadResult>;
+
   getOfflineCacheZipAsync(
     project: string,
-    sdkQuery?: SdkTranslationQueryParams,
+    sdkQuery?: TranslaasRequestContext,
     cancellationToken?: AbortSignal
   ): Promise<ArrayBuffer>;
 

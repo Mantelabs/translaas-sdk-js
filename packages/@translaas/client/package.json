@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "@translaas/models": "*",
-    "@translaas/extensions": "*"
+    "@translaas/extensions": "*",
+    "@translaas/caching": "*"
   },
   "keywords": [
     "translaas",

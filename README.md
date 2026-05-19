@@ -17,12 +17,12 @@ A strongly-typed, performant, and modular JavaScript/TypeScript SDK for consumin
 - ✅ **Strongly-typed API** - Full TypeScript support with IntelliSense and type safety
 - ✅ **Convenience API** - Simple `t()` method for quick translation lookups via `TranslaasService`
 - ✅ **Automatic Language Resolution** - Optional language parameter with configurable providers (HTTP request, browser locale, default)
-- ✅ **Framework Integrations** - Express.js, Next.js, and other framework integrations
+- ✅ **Framework extensions** - Optional Express.js and Next.js helpers in `@translaas/extensions`
 - ✅ **Flexible Caching** - Built-in memory caching with configurable cache modes
-- ✅ **Offline Caching** - File-based caching for offline mode with automatic sync (Node.js) or browser storage (browser)
+- ✅ **Offline bundle download** - `GET …/offline-cache` ZIP download; file-backed offline reads via `@translaas/caching-file` (sync tooling planned for 0.4.0)
 - ✅ **Hybrid Caching** - Two-level caching (memory L1 + file L2) for optimal performance
 - ✅ **Multi-Environment Support** - Works in Node.js, browsers, and modern JavaScript runtimes
-- ✅ **Retry & Resilience** - Configurable retry policies and timeouts
+- ✅ **Request timeouts** - Optional per-request timeout configuration
 - ✅ **Modular Design** - Use only what you need with separate npm packages
 - ✅ **Async/Await** - Fully asynchronous API for optimal performance
 - ✅ **ES Modules** - Native ES module support with CommonJS compatibility

@@ -160,7 +160,7 @@ describe('TranslaasService', () => {
       const result = await service.t('messages', 'item', 'en', 5);
 
       expect(result).toBe('5 items');
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('n=5'), expect.any(Object));
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('N=5'), expect.any(Object));
     });
 
     it('should work with parameters', async () => {
@@ -190,7 +190,7 @@ describe('TranslaasService', () => {
 
       expect(result).toBe('5 items');
       const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toContain('n=5');
+      expect(url).toContain('N=5');
       expect(url).toContain('count=5');
     });
 

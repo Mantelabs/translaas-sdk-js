@@ -64,6 +64,14 @@ describe('ITranslaasClient', () => {
       expect(typeof client.reportMissingKeysAsync).toBe('function');
     });
 
+    it('should have getOfflineCacheAsync method', () => {
+      const client = new TranslaasClient({
+        apiKey: 'test-key',
+        baseUrl: 'https://api.example.com',
+      });
+      expect(typeof client.getOfflineCacheAsync).toBe('function');
+    });
+
     it('should have getOfflineCacheZipAsync method', () => {
       const client = new TranslaasClient({
         apiKey: 'test-key',

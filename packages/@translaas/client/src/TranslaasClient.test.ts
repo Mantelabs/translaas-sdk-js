@@ -153,7 +153,7 @@ describe('TranslaasClient', () => {
       await client.getEntryAsync('group', 'entry', 'en', 5);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toContain('n=5');
+      expect(call[0]).toContain('N=5');
     });
 
     it('should include custom parameters when provided', async () => {
@@ -182,7 +182,7 @@ describe('TranslaasClient', () => {
       expect(call[0]).toContain('group=group');
       expect(call[0]).toContain('entry=entry');
       expect(call[0]).toContain('lang=en');
-      expect(call[0]).toContain('n=5');
+      expect(call[0]).toContain('N=5');
       expect(call[0]).toContain('userName=John');
       expect(call[0]).toContain('age=30');
     });
@@ -855,6 +855,183 @@ describe('TranslaasClient', () => {
       }, 10);
 
       await expect(requestPromise).rejects.toThrow();
+    });
+  });
+
+  describe('HTTP 204/304 semantics', () => {
+    it('getEntryAsync should return entry key on 204 No Content', async () => {
+      mockFetch.mockResolvedValueOnce({
+        status: 204,
+        ok: false,
+        headers: { get: () => null },
+        text: async () => '',
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      const result = await client.getEntryAsync('g', 'welcome', 'en');
+      expect(result).toBe('welcome');
+    });
+
+    it('getEntryAsync should return empty string on 304 Not Modified', async () => {
+      mockFetch.mockResolvedValueOnce({
+        status: 304,
+        ok: false,
+        headers: { get: (name: string) => (name.toLowerCase() === 'etag' ? '"abc"' : null) },
+        text: async () => '',
+      });
+
+      const ctx = { ifNoneMatch: '"abc"' };
+      const client = new TranslaasClient(defaultOptions);
+      const result = await client.getEntryAsync('g', 'welcome', 'en', undefined, undefined, ctx);
+      expect(result).toBe('');
+      expect(ctx.notModified).toBe(true);
+      expect(ctx.responseEtag).toBe('"abc"');
+    });
+
+    it('getGroupAsync should return empty group on 204/304', async () => {
+      mockFetch.mockResolvedValueOnce({
+        status: 204,
+        ok: false,
+        headers: { get: () => null },
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      const result = await client.getGroupAsync('p', 'g', 'en');
+      expect(result.entries).toEqual({});
+    });
+
+    it('getProjectLocalesAsync should include project on 304', async () => {
+      mockFetch.mockResolvedValueOnce({
+        status: 304,
+        ok: false,
+        headers: { get: () => null },
+      });
+
+      const ctx = { ifNoneMatch: '"v1"' };
+      const client = new TranslaasClient(defaultOptions);
+      const result = await client.getProjectLocalesAsync('my-proj', ctx);
+      expect(result.locales).toEqual([]);
+      expect(result.project).toBe('my-proj');
+      expect(ctx.notModified).toBe(true);
+    });
+
+    it('should send If-None-Match when request context provides it', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+        headers: { get: () => null },
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      await client.getGroupAsync('p', 'g', 'en', undefined, { ifNoneMatch: '"etag-1"' });
+
+      const init = mockFetch.mock.calls[0][1] as RequestInit;
+      expect(init.headers).toMatchObject({ 'If-None-Match': '"etag-1"' });
+    });
+  });
+
+  describe('memory caching', () => {
+    it('getEntryAsync should return cached value without second network call', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        text: async () => 'Cached text',
+        headers: { get: () => null },
+      });
+
+      const client = new TranslaasClient({
+        ...defaultOptions,
+        cacheMode: CacheMode.Entry,
+      });
+
+      const first = await client.getEntryAsync('g', 'e', 'en');
+      const second = await client.getEntryAsync('g', 'e', 'en');
+
+      expect(first).toBe('Cached text');
+      expect(second).toBe('Cached text');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('getGroupAsync should cache when cacheMode is Group', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ welcome: 'Hi' }),
+        headers: { get: () => null },
+      });
+
+      const client = new TranslaasClient({
+        ...defaultOptions,
+        cacheMode: CacheMode.Group,
+      });
+
+      await client.getGroupAsync('p', 'g', 'en');
+      await client.getGroupAsync('p', 'g', 'en');
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getOfflineCacheAsync', () => {
+    it('should return metadata and bytes on 200', async () => {
+      const bytes = new Uint8Array([0x50, 0x4b]).buffer;
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        arrayBuffer: async () => bytes,
+        headers: {
+          get: (name: string) => {
+            if (name.toLowerCase() === 'etag') return '"zip-1"';
+            if (name.toLowerCase() === 'content-disposition') {
+              return 'attachment; filename="bundle.zip"';
+            }
+            return null;
+          },
+        },
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      const result = await client.getOfflineCacheAsync('acme-proj');
+
+      expect(result.notModified).toBe(false);
+      expect(result.content).toBeInstanceOf(ArrayBuffer);
+      expect(result.responseEtag).toBe('"zip-1"');
+      expect(result.suggestedFileName).toBe('bundle.zip');
+    });
+
+    it('should return notModified result on 304', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 304,
+        headers: { get: (name: string) => (name.toLowerCase() === 'etag' ? '"zip-1"' : null) },
+      });
+
+      const ctx = { ifNoneMatch: '"zip-1"' };
+      const client = new TranslaasClient(defaultOptions);
+      const result = await client.getOfflineCacheAsync('acme-proj', ctx);
+
+      expect(result.notModified).toBe(true);
+      expect(result.content).toBeNull();
+      expect(ctx.notModified).toBe(true);
+    });
+  });
+
+  describe('error envelope parsing', () => {
+    it('should include API error code in exception message', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+        text: async () => JSON.stringify({ message: 'Access denied', code: 'FORBIDDEN' }),
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      try {
+        await client.getEntryAsync('g', 'e', 'en');
+        expect.fail('Should have thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(TranslaasApiException);
+        expect((error as TranslaasApiException).message).toContain('[FORBIDDEN]');
+        expect((error as TranslaasApiException).code).toBe('FORBIDDEN');
+      }
     });
   });
 });

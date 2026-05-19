@@ -1,108 +1,135 @@
+export interface CacheSnapshotOptions {
+  project?: string;
+  channel?: string;
+  version?: string;
+  includeContext?: boolean;
+}
+
 /**
  * Utility class for building consistent cache keys across the SDK.
- * Ensures cache keys follow a standardized format and are URL-safe.
- *
- * Key format: `{type}:{params}:{lang}`
- * - Entry: `entry:{group}:{entry}:{lang}`
- * - Group: `group:{project}:{group}:{lang}`
- * - Project: `project:{project}:{lang}`
- * - Group Locales: `group-locales:{project}:{group}`
- * - Project Locales: `project-locales:{project}`
- *
- * @example
- * ```typescript
- * const entryKey = CacheKeyBuilder.buildEntryKey('common', 'welcome', 'en');
- * // Returns: "entry:common:welcome:en"
- *
- * const groupKey = CacheKeyBuilder.buildGroupKey('my-project', 'common', 'en');
- * // Returns: "group:my-project:common:en"
- * ```
+ * Algorithm aligned with .NET `CacheKeyBuilder`.
  */
 export class CacheKeyBuilder {
-  /**
-   * Builds a cache key for a translation entry.
-   *
-   * @param group - Group name
-   * @param entry - Entry name
-   * @param lang - Language code
-   * @returns Cache key in format: `entry:{group}:{entry}:{lang}`
-   * @throws Error if any parameter is empty
-   */
-  static buildEntryKey(group: string, entry: string, lang: string): string {
+  private static readonly separator = ':';
+
+  static buildEntryKey(
+    group: string,
+    entry: string,
+    lang: string,
+    number?: number,
+    parameters?: Record<string, string>,
+    snapshot?: CacheSnapshotOptions
+  ): string {
     this.validateNonEmpty(group, 'group');
     this.validateNonEmpty(entry, 'entry');
     this.validateNonEmpty(lang, 'lang');
 
-    return `entry:${group}:${entry}:${lang}`;
+    let key = `entry${this.separator}${group}${this.separator}${entry}${this.separator}${lang}`;
+
+    if (number !== undefined && number !== null) {
+      key += `${this.separator}${number.toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 20 })}`;
+    }
+
+    if (parameters && Object.keys(parameters).length > 0) {
+      const sorted = Object.entries(parameters)
+        .filter(([k, v]) => k && v != null)
+        .sort(([a], [b]) => a.localeCompare(b, undefined, { sensitivity: 'accent' }));
+      for (const [paramKey, value] of sorted) {
+        key += `${this.separator}${paramKey.toLowerCase()}=${value}`;
+      }
+    }
+
+    return this.appendSnapshotSuffix(key, snapshot, true);
   }
 
-  /**
-   * Builds a cache key for a translation group.
-   *
-   * @param project - Project identifier
-   * @param group - Group name
-   * @param lang - Language code
-   * @returns Cache key in format: `group:{project}:{group}:{lang}`
-   * @throws Error if any parameter is empty
-   */
-  static buildGroupKey(project: string, group: string, lang: string): string {
+  static buildGroupKey(
+    project: string,
+    group: string,
+    lang: string,
+    format?: string,
+    snapshot?: CacheSnapshotOptions
+  ): string {
     this.validateNonEmpty(project, 'project');
     this.validateNonEmpty(group, 'group');
     this.validateNonEmpty(lang, 'lang');
 
-    return `group:${project}:${group}:${lang}`;
+    let key = `group${this.separator}${project}${this.separator}${group}${this.separator}${lang}`;
+    if (format && format.trim()) {
+      key += `${this.separator}${format}`;
+    }
+    return this.appendSnapshotSuffix(key, snapshot, false);
   }
 
-  /**
-   * Builds a cache key for a translation project.
-   *
-   * @param project - Project identifier
-   * @param lang - Language code
-   * @returns Cache key in format: `project:{project}:{lang}`
-   * @throws Error if any parameter is empty
-   */
-  static buildProjectKey(project: string, lang: string): string {
+  static buildProjectKey(
+    project: string,
+    lang: string,
+    format?: string,
+    snapshot?: CacheSnapshotOptions
+  ): string {
     this.validateNonEmpty(project, 'project');
     this.validateNonEmpty(lang, 'lang');
 
-    return `project:${project}:${lang}`;
+    let key = `project${this.separator}${project}${this.separator}${lang}`;
+    if (format && format.trim()) {
+      key += `${this.separator}${format}`;
+    }
+    return this.appendSnapshotSuffix(key, snapshot, false);
   }
 
-  /**
-   * Builds a cache key for group locales.
-   *
-   * @param project - Project identifier
-   * @param group - Group name
-   * @returns Cache key in format: `group-locales:{project}:{group}`
-   * @throws Error if any parameter is empty
-   */
+  /** .NET-aligned locales key (`locales:{project}`). */
+  static buildLocalesKey(
+    project: string,
+    snapshot?: Pick<CacheSnapshotOptions, 'channel' | 'version'>
+  ): string {
+    this.validateNonEmpty(project, 'project');
+    const key = `locales${this.separator}${project}`;
+    return this.appendSnapshotSuffix(key, snapshot, false);
+  }
+
+  /** @deprecated Use {@link buildLocalesKey} — kept for backward compatibility. */
+  static buildProjectLocalesKey(
+    project: string,
+    snapshot?: Pick<CacheSnapshotOptions, 'channel' | 'version'>
+  ): string {
+    return this.buildLocalesKey(project, snapshot);
+  }
+
+  static buildOfflineCacheKey(project: string, snapshot?: CacheSnapshotOptions): string {
+    this.validateNonEmpty(project, 'project');
+    const key = `offline${this.separator}${project}`;
+    return this.appendSnapshotSuffix(key, snapshot, false);
+  }
+
   static buildGroupLocalesKey(project: string, group: string): string {
     this.validateNonEmpty(project, 'project');
     this.validateNonEmpty(group, 'group');
-
-    return `group-locales:${project}:${group}`;
+    return `group-locales${this.separator}${project}${this.separator}${group}`;
   }
 
-  /**
-   * Builds a cache key for project locales.
-   *
-   * @param project - Project identifier
-   * @returns Cache key in format: `project-locales:{project}`
-   * @throws Error if project is empty
-   */
-  static buildProjectLocalesKey(project: string): string {
-    this.validateNonEmpty(project, 'project');
-
-    return `project-locales:${project}`;
+  private static appendSnapshotSuffix(
+    key: string,
+    snapshot: CacheSnapshotOptions | Pick<CacheSnapshotOptions, 'channel' | 'version'> | undefined,
+    includeProjectOnEntry: boolean
+  ): string {
+    if (!snapshot) {
+      return key;
+    }
+    let result = key;
+    if (includeProjectOnEntry && 'project' in snapshot && snapshot.project) {
+      result += `${this.separator}proj=${snapshot.project}`;
+    }
+    if (snapshot.channel) {
+      result += `${this.separator}ch=${snapshot.channel}`;
+    }
+    if (snapshot.version) {
+      result += `${this.separator}v=${snapshot.version}`;
+    }
+    if ('includeContext' in snapshot && snapshot.includeContext !== undefined) {
+      result += `${this.separator}ic=${snapshot.includeContext ? '1' : '0'}`;
+    }
+    return result;
   }
 
-  /**
-   * Validates that a string parameter is non-empty.
-   *
-   * @param value - Value to validate
-   * @param paramName - Parameter name for error message
-   * @throws Error if value is empty or whitespace
-   */
   private static validateNonEmpty(value: string, paramName: string): void {
     if (!value || typeof value !== 'string' || value.trim().length === 0) {
       throw new Error(`${paramName} must be a non-empty string`);

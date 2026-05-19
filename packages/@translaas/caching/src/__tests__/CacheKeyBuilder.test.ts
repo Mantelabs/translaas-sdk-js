@@ -207,15 +207,15 @@ describe('CacheKeyBuilder', () => {
   describe('buildProjectLocalesKey', () => {
     it('should build project locales key with correct format', () => {
       const key = CacheKeyBuilder.buildProjectLocalesKey('my-project');
-      expect(key).toBe('project-locales:my-project');
+      expect(key).toBe('locales:my-project');
     });
 
     it('should handle different project names', () => {
       const key1 = CacheKeyBuilder.buildProjectLocalesKey('project1');
       const key2 = CacheKeyBuilder.buildProjectLocalesKey('project2');
 
-      expect(key1).toBe('project-locales:project1');
-      expect(key2).toBe('project-locales:project2');
+      expect(key1).toBe('locales:project1');
+      expect(key2).toBe('locales:project2');
     });
 
     it('should throw error for empty project', () => {

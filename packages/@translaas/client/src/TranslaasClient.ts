@@ -14,6 +14,7 @@ import {
   parseGroupTranslationsResponse,
   parseProjectTranslationsResponse,
   appendSdkTranslationQueryParams,
+  resolveTranslaasOptionsWithDefaultProject,
 } from '@translaas/models';
 
 function normalizeTranslationsPathPrefix(prefix: string): string {
@@ -36,6 +37,17 @@ function normalizeTranslationsPathPrefix(prefix: string): string {
 export class TranslaasClient implements ITranslaasClient {
   private readonly baseUrl: string;
   private readonly translationsBase: string;
+
+  /**
+   * Creates a client after resolving `defaultProjectId` from the validate endpoint when it is not configured.
+   */
+  static async createAsync(options: TranslaasOptions): Promise<TranslaasClient> {
+    const temp = new TranslaasClient(options);
+    const resolved = await resolveTranslaasOptionsWithDefaultProject(options, () =>
+      temp.validateApiKeyAsync()
+    );
+    return new TranslaasClient(resolved);
+  }
 
   /**
    * Creates a new TranslaasClient instance.

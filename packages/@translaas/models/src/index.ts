@@ -3,6 +3,7 @@ export * from './types';
 export * from './sdkParsing';
 export * from './errors';
 export * from './requests';
+export * from './projectResolution';
 export * from './PluralResolver';
 export * from './ParameterReplacer';
 export * from './EnvironmentDetector';

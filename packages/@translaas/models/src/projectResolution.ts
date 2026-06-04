@@ -24,9 +24,7 @@ export function resolveDefaultProjectIdFromValidate(
   }
 
   const fromValidate =
-    validate.defaultProjectId?.trim() ||
-    validate.projectId?.trim() ||
-    projectIds[0]?.trim();
+    validate.defaultProjectId?.trim() || validate.projectId?.trim() || projectIds[0]?.trim();
 
   if (!fromValidate) {
     throw new TranslaasConfigurationException(

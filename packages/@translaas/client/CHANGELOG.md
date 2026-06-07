@@ -1,5 +1,22 @@
 # @translaas/client
 
+## 0.4.0-beta.0
+
+### Minor Changes
+
+- f797f92: Align the JavaScript SDK with the .NET contract:
+  - **`TranslaasService.t()`** — numeric third argument is treated as plural count with automatic language resolution (breaking change for callers that previously passed a numeric language code positionally).
+  - **`TranslaasClient.getEntryAsync`** — merges `N` into query parameters when `number` is set (case-insensitive overwrite replaces `n`, matching .NET wire format).
+  - **`CachingTranslaasClient`** — shipped in `@translaas/caching-file` with CacheFirst / ApiFirst / CacheOnly modes, .NET-aligned one/other offline plural rules, and `{name}` substitution.
+
+- 0c15ef2: Resolve default project id from the validate API key response when `defaultProjectId` is omitted, including `TranslaasClient.createAsync` and shared resolution helpers in `@translaas/models`.
+
+### Patch Changes
+
+- Updated dependencies [f797f92]
+- Updated dependencies [0c15ef2]
+  - @translaas/models@0.4.0-beta.0
+
 ## 0.4.0-beta
 
 ### Minor Changes

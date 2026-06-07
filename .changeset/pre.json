@@ -9,5 +9,8 @@
     "@translaas/extensions": "0.4.0-beta",
     "@translaas/models": "0.4.0-beta"
   },
-  "changesets": []
+  "changesets": [
+    "align-with-dotnet-sdk-109",
+    "resolve-default-project-from-validate"
+  ]
 }

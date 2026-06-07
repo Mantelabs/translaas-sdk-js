@@ -163,7 +163,7 @@ describe('TranslaasService', () => {
       const result = await service.t('messages', 'item', 5);
 
       expect(result).toBe('5 items');
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('n=5'), expect.any(Object));
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('N=5'), expect.any(Object));
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('lang=en'),
         expect.any(Object)
@@ -184,7 +184,8 @@ describe('TranslaasService', () => {
 
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('lang=en');
-      expect(url).toContain('n=5');
+      expect(url).toContain('N=5');
+      expect(url).not.toContain('n=5');
       expect(url).not.toContain('lang=5');
     });
 
@@ -202,8 +203,8 @@ describe('TranslaasService', () => {
 
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('name=John');
-      expect(url).toContain('n=5');
       expect(url).toContain('N=5');
+      expect(url).not.toContain('n=5');
     });
 
     it('should work with pluralization using explicit language', async () => {
@@ -216,7 +217,7 @@ describe('TranslaasService', () => {
       const result = await service.t('messages', 'item', 'en', 5);
 
       expect(result).toBe('5 items');
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('n=5'), expect.any(Object));
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('N=5'), expect.any(Object));
     });
 
     it('should work with parameters', async () => {
@@ -246,7 +247,8 @@ describe('TranslaasService', () => {
 
       expect(result).toBe('5 items');
       const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toContain('n=5');
+      expect(url).toContain('N=5');
+      expect(url).not.toContain('n=5');
       expect(url).toContain('count=5');
     });
 

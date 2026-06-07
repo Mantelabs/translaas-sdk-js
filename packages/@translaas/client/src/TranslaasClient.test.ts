@@ -153,8 +153,8 @@ describe('TranslaasClient', () => {
       await client.getEntryAsync('group', 'entry', 'en', 5);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toContain('n=5');
       expect(call[0]).toContain('N=5');
+      expect(call[0]).not.toContain('n=5');
     });
 
     it('should prefer explicit N in parameters over number argument', async () => {
@@ -167,9 +167,9 @@ describe('TranslaasClient', () => {
       await client.getEntryAsync('group', 'entry', 'en', 5, { N: '10' });
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toContain('n=5');
       expect(call[0]).toContain('N=10');
       expect(call[0]).not.toContain('N=5');
+      expect(call[0]).not.toContain('n=5');
     });
 
     it('should include number parameter when provided', async () => {
@@ -182,7 +182,8 @@ describe('TranslaasClient', () => {
       await client.getEntryAsync('group', 'entry', 'en', 5);
 
       const call = mockFetch.mock.calls[0];
-      expect(call[0]).toContain('n=5');
+      expect(call[0]).toContain('N=5');
+      expect(call[0]).not.toContain('n=5');
     });
 
     it('should include custom parameters when provided', async () => {
@@ -211,7 +212,8 @@ describe('TranslaasClient', () => {
       expect(call[0]).toContain('group=group');
       expect(call[0]).toContain('entry=entry');
       expect(call[0]).toContain('lang=en');
-      expect(call[0]).toContain('n=5');
+      expect(call[0]).toContain('N=5');
+      expect(call[0]).not.toContain('n=5');
       expect(call[0]).toContain('userName=John');
       expect(call[0]).toContain('age=30');
     });

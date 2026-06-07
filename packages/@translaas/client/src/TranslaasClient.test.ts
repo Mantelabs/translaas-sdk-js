@@ -143,6 +143,35 @@ describe('TranslaasClient', () => {
       });
     });
 
+    it('should include N query parameter when number is provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        text: async () => '5 items',
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      await client.getEntryAsync('group', 'entry', 'en', 5);
+
+      const call = mockFetch.mock.calls[0];
+      expect(call[0]).toContain('n=5');
+      expect(call[0]).toContain('N=5');
+    });
+
+    it('should prefer explicit N in parameters over number argument', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        text: async () => '10 items',
+      });
+
+      const client = new TranslaasClient(defaultOptions);
+      await client.getEntryAsync('group', 'entry', 'en', 5, { N: '10' });
+
+      const call = mockFetch.mock.calls[0];
+      expect(call[0]).toContain('n=5');
+      expect(call[0]).toContain('N=10');
+      expect(call[0]).not.toContain('N=5');
+    });
+
     it('should include number parameter when provided', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,

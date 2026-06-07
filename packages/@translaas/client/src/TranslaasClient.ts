@@ -15,6 +15,7 @@ import {
   parseProjectTranslationsResponse,
   appendSdkTranslationQueryParams,
   resolveTranslaasOptionsWithDefaultProject,
+  mergeNumberIntoParameters,
 } from '@translaas/models';
 
 function normalizeTranslationsPathPrefix(prefix: string): string {
@@ -300,6 +301,7 @@ export class TranslaasClient implements ITranslaasClient {
       cancellationToken
     );
     const project = explicitProject ?? this.options.defaultProjectId;
+    const mergedParameters = mergeNumberIntoParameters(number, parameters);
 
     const queryParams = this.buildQueryParams({
       group,
@@ -307,7 +309,7 @@ export class TranslaasClient implements ITranslaasClient {
       lang,
       n: number,
       ...(project ? { project } : {}),
-      ...parameters,
+      ...mergedParameters,
     });
     this.appendMergedSdkQuery(queryParams, undefined, true);
 

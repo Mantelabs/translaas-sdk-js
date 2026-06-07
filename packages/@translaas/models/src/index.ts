@@ -6,4 +6,5 @@ export * from './requests';
 export * from './projectResolution';
 export * from './PluralResolver';
 export * from './ParameterReplacer';
+export * from './textQuery';
 export * from './EnvironmentDetector';

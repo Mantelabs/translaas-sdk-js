@@ -2,6 +2,7 @@ import { TranslaasClient } from './TranslaasClient';
 import type { TranslaasOptions } from '@translaas/models';
 import { TranslaasConfigurationException } from '@translaas/models';
 import type { ILanguageResolver } from '@translaas/extensions';
+import { resolveServiceTArgs } from './resolveServiceTArgs';
 
 /**
  * Translaas service providing convenient translation methods.
@@ -22,6 +23,9 @@ import type { ILanguageResolver } from '@translaas/extensions';
  * // Language will be resolved automatically (uses defaultLanguage)
  * const text = await service.t('common', 'welcome');
  *
+ * // Plural count with automatic language (mirrors .NET T(group, entry, number))
+ * const text = await service.t('messages', 'items', 5);
+ *
  * // With language resolver (Express.js example)
  * import { LanguageResolver, RequestLanguageProvider } from '@translaas/extensions';
  *
@@ -40,13 +44,8 @@ import type { ILanguageResolver } from '@translaas/extensions';
  * // Override language explicitly
  * const text = await service.t('common', 'welcome', 'fr');
  *
- * // With pluralization
- * const text = await service.t('messages', 'items', undefined, 5);
- *
  * // With parameters
- * const text = await service.t('common', 'greeting', undefined, undefined, {
- *   name: 'John'
- * });
+ * const text = await service.t('common', 'greeting', { name: 'John' });
  * ```
  *
  * @see {@link TranslaasClient} for lower-level API access
@@ -87,64 +86,59 @@ export class TranslaasService {
    * 3. Default language (if configured)
    * 4. Throws error if none available
    *
-   * @param group - Translation group name (e.g., "common", "ui", "messages")
-   * @param entry - Translation entry key (e.g., "welcome", "button.save")
-   * @param lang - Optional language code (ISO 639-1). If omitted, language resolver will be used.
-   * @param number - Optional number for pluralization (e.g., 1, 5, 1.31)
-   * @param parameters - Optional custom parameters for template substitution (e.g., { name: "John", count: 5 })
-   * @param cancellationToken - Optional AbortSignal to cancel the request
-   * @returns Promise resolving to the translation text
-   * @throws `TranslaasConfigurationException` if language cannot be resolved and no default language is set
-   * @throws `TranslaasApiException` if the API request fails
-   *
-   * @example
-   * ```typescript
-   * // Simple translation (uses language resolver or default)
-   * const text = await service.t('common', 'welcome');
-   *
-   * // Explicit language
-   * const text = await service.t('common', 'welcome', 'fr');
-   *
-   * // With pluralization
-   * const text = await service.t('messages', 'items', undefined, 5);
-   *
-   * // With parameters
-   * const text = await service.t('common', 'greeting', undefined, undefined, {
-   *   name: 'John'
-   * });
-   *
-   * // All options
-   * const text = await service.t('messages', 'items', 'en', 5, {
-   *   count: '5'
-   * });
-   * ```
+   * The third argument may be a language code, a plural count, or a parameters object
+   * (including `{ number: 5 }`), matching .NET `ITranslaasService.T` overloads.
    */
+  async t(group: string, entry: string): Promise<string>;
+  async t(group: string, entry: string, lang: string): Promise<string>;
+  async t(group: string, entry: string, number: number): Promise<string>;
   async t(
     group: string,
     entry: string,
-    lang?: string,
-    number?: number,
+    parameters: Record<string, string | number>
+  ): Promise<string>;
+  async t(group: string, entry: string, lang: string, number: number): Promise<string>;
+  async t(
+    group: string,
+    entry: string,
+    lang: string,
+    parameters: Record<string, string | number>
+  ): Promise<string>;
+  async t(
+    group: string,
+    entry: string,
+    lang: string,
+    number: number,
+    parameters: Record<string, string>
+  ): Promise<string>;
+  async t(
+    group: string,
+    entry: string,
+    lang?: string | number | Record<string, string | number>,
+    number?: number | Record<string, string | number>,
     parameters?: Record<string, string>,
     projectOrCancellation?: string | AbortSignal,
     cancellationToken?: AbortSignal
   ): Promise<string> {
-    let resolvedLang: string | null = null;
+    const resolved = resolveServiceTArgs(
+      lang,
+      number,
+      parameters,
+      projectOrCancellation,
+      cancellationToken
+    );
 
-    // If language is provided, use it directly
-    if (lang) {
-      resolvedLang = lang;
-    } else {
-      // Try to resolve language using resolver
+    let resolvedLang: string | null = resolved.lang ?? null;
+
+    if (!resolvedLang) {
       if (this.languageResolver) {
         resolvedLang = await this.languageResolver.resolveLanguageAsync();
       }
 
-      // Fallback to default language if resolver didn't return a language
       if (!resolvedLang && this.defaultLanguage) {
         resolvedLang = this.defaultLanguage;
       }
 
-      // If still no language, throw error
       if (!resolvedLang) {
         throw new TranslaasConfigurationException(
           'Language is required. Either provide a language parameter, configure a language resolver, or set a default language.'
@@ -156,10 +150,10 @@ export class TranslaasService {
       group,
       entry,
       resolvedLang,
-      number,
-      parameters,
-      projectOrCancellation,
-      cancellationToken
+      resolved.number,
+      resolved.parameters,
+      resolved.project ?? resolved.cancellationToken,
+      resolved.project ? resolved.cancellationToken : undefined
     );
   }
 }

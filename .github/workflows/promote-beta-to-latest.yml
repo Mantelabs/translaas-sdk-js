@@ -1,0 +1,75 @@
+name: Promote beta to latest
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Published version to promote (must exist on npm under the beta dist-tag)'
+        required: true
+        default: '0.5.0-beta'
+        type: string
+
+concurrency: promote-beta-to-latest
+
+jobs:
+  promote:
+    name: Point latest dist-tag at ${{ inputs.version }}
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Verify version exists on npm
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          for PKG in \
+            @translaas/models \
+            @translaas/client \
+            @translaas/caching \
+            @translaas/caching-file \
+            @translaas/extensions \
+            @translaas/core
+          do
+            echo "Checking ${PKG}@${VERSION}..."
+            npm view "${PKG}@${VERSION}" version >/dev/null
+          done
+
+      - name: Promote beta release to latest dist-tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          for PKG in \
+            @translaas/models \
+            @translaas/client \
+            @translaas/caching \
+            @translaas/caching-file \
+            @translaas/extensions \
+            @translaas/core
+          do
+            echo "npm dist-tag add ${PKG}@${VERSION} latest"
+            npm dist-tag add "${PKG}@${VERSION}" latest
+          done
+
+      - name: Show resulting dist-tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          for PKG in \
+            @translaas/models \
+            @translaas/client \
+            @translaas/caching \
+            @translaas/caching-file \
+            @translaas/extensions \
+            @translaas/core
+          do
+            echo "--- ${PKG} ---"
+            npm dist-tag ls "${PKG}"
+          done

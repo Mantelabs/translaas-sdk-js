@@ -66,6 +66,8 @@ Don't create a changeset for:
 The repo may use **prerelease** versioning (e.g. `0.3.0-beta`). While **`.changeset/pre.json`** exists:
 
 - You are in **pre** mode with npm dist-tag **`beta`** (see `pre.json`).
+- New publishes land on **`beta`**; **`latest`** is not updated automatically.
+- To point **`latest`** at a published beta (so `npm install @translaas/core` resolves to it), run the **Promote beta to latest** workflow in GitHub Actions (`.github/workflows/promote-beta-to-latest.yml`). It uses the repo **`NPM_TOKEN`** secret — no local npm login required.
 - After publishing this line, run **`npx changeset pre exit`** when you are ready to return to normal (non-prerelease) versioning.
 
 Do not leave multiple stale changeset files on `main`; consolidate into one release changeset or consume them with `changeset version` so CI does not open conflicting “Version packages” PRs.

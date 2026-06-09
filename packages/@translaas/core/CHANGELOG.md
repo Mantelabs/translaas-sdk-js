@@ -1,5 +1,16 @@
 # @translaas/core
 
+## 0.5.0-beta
+
+### Patch Changes
+
+- Updated dependencies
+  - @translaas/models@0.5.0-beta
+  - @translaas/client@0.5.0-beta
+  - @translaas/caching@0.5.0-beta
+  - @translaas/caching-file@0.5.0-beta
+  - @translaas/extensions@0.5.0-beta
+
 ## 0.4.0-beta
 
 ### Minor Changes

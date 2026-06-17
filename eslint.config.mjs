@@ -13,6 +13,7 @@ export default tseslint.config(
       '*.config.js',
       '**/*.js',
       '**/*.cjs',
+      '**/*.mjs',
     ],
   },
   eslint.configs.recommended,

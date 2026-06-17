@@ -4,10 +4,28 @@ name: CI
 # Windows + macOS: run manually — Actions → CI → Run workflow.
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - develop
+    paths: &ci-paths
+      - '.github/workflows/ci.yml'
+      - 'packages/**'
+      - 'tests/**'
+      - 'vitest.config*.ts'
+      - 'eslint.config.*'
+      - 'tsconfig*.json'
+      - 'package.json'
+      - 'package-lock.json'
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - develop
+    paths: *ci-paths
   workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -51,39 +69,94 @@ jobs:
 
       - name: Run linting
         run: npm run lint
-        continue-on-error: false
 
       - name: Run type checking
         run: npm run type-check
-        continue-on-error: false
 
       - name: Build
         run: npm run build
-        continue-on-error: false
 
       - name: Generate documentation
         run: npm run docs
         continue-on-error: true
 
-      - name: Run tests
-        run: npm test -- --coverage
-        continue-on-error: false
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v7
-        if: always()
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          name: test-results-${{ matrix.os }}-node-${{ matrix.node-version }}
-          path: |
-            coverage/**
-            test-results/**
-          retention-days: 30
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Upload coverage reports
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Run unit tests
+        run: npm run test -- --coverage
+
+      - name: Upload coverage
+        if: always()
         uses: codecov/codecov-action@v6
-        if: always()
         with:
-          files: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
+          files: ./coverage/lcov.info,./coverage/coverage-final.json
+          flags: unit
+          name: unit-tests
           fail_ci_if_error: false
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v6
+        with:
+          files: ./coverage/coverage-final.json
+          flags: integration
+          name: integration-tests
+          fail_ci_if_error: false
+
+  ci-gate:
+    name: CI Gate
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-test
+      - unit-tests
+      - integration-tests
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          if [ "${{ needs.build-and-test.result }}" != "success" ] || \
+             [ "${{ needs.unit-tests.result }}" != "success" ] || \
+             [ "${{ needs.integration-tests.result }}" != "success" ]; then
+            echo "One or more CI jobs failed"
+            exit 1
+          fi

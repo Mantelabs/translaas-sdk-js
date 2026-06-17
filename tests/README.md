@@ -219,7 +219,7 @@ server.use(errorHandlers.networkError);
 
 ## CI Integration
 
-Integration tests run automatically in CI/CD pipelines via `.github/workflows/integration-tests.yml`. The tests are configured with:
+Integration tests run automatically in the unified CI workflow (`.github/workflows/ci.yml`, **Integration Tests** job). The tests are configured with:
 
 - 30 second timeout per test
 - Node.js environment

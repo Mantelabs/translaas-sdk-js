@@ -524,6 +524,23 @@ npm run build
 npm run changeset:publish
 ```
 
+#### Git tags
+
+Releases use **one canonical `v*` git tag per release** (for example `v0.5.0-beta`), aligned with the `@translaas/core` version. This tag is the repo-level pointer for GitHub Releases and release notes.
+
+- `changeset publish` runs with `--no-git-tag` so Changesets does **not** create per-package tags such as `@translaas/models@0.5.0-beta`.
+- After a successful CI publish, `npm run release:git-tag` creates and pushes `v{version}` when that tag is not already on `origin`.
+- npm only needs published package versions; per-package git tags are not used.
+
+**Manual release checklist:** After `npm run changeset:publish`, create the coordinated tag if you are not using CI:
+
+```bash
+git tag v0.5.0-beta   # match @translaas/core version
+git push origin v0.5.0-beta
+```
+
+Optionally open a **GitHub Release** from that `v*` tag (not from per-package tags). Legacy `@translaas/*@*` tags on GitHub may be removed after team confirmation; they are not required for npm consumers.
+
 #### Version Numbering
 
 We follow [Semantic Versioning](https://semver.org/) (SemVer):
@@ -549,9 +566,10 @@ Available npm scripts:
 
 - `npm run changeset` - Create a new changeset interactively
 - `npm run changeset:version` - Update package versions based on changesets
-- `npm run changeset:publish` - Publish packages to npm
+- `npm run changeset:publish` - Publish packages to npm (without per-package git tags; see [Git tags](#git-tags))
+- `npm run release:git-tag` - Create and push the coordinated `v*` git tag after publish (CI only; idempotent)
 - `npm run version` - Alias for `changeset:version`
-- `npm run release` - Build and publish (combines build + publish)
+- `npm run release` - Build, publish to npm, and push coordinated `v*` git tag
 
 #### CI Integration
 
@@ -559,6 +577,7 @@ The GitHub Actions workflow (`.github/workflows/release.yml`) automatically:
 - ✅ Checks for changesets on every push to `main`
 - ✅ Creates a "Version Packages" PR when changesets are detected
 - ✅ Publishes packages to npm when the version PR is merged
+- ✅ Pushes one coordinated `v*` git tag per release (`createGithubReleases: false`; no per-package git tags)
 - ✅ Updates changelogs automatically
 - ✅ Prevents duplicate runs (skips commits from the changesets action itself)
 

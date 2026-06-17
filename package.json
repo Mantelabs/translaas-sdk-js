@@ -32,9 +32,10 @@
     "prepare": "husky install",
     "changeset": "changeset",
     "changeset:version": "changeset version",
-    "changeset:publish": "changeset publish",
+    "changeset:publish": "changeset publish --no-git-tag",
+    "release:git-tag": "node scripts/create-coordinated-release-tag.mjs",
     "version": "npm run changeset:version",
-    "release": "npm run build && npm run changeset:publish"
+    "release": "npm run build && npm run changeset:publish && npm run release:git-tag"
   },
   "keywords": [
     "translaas",

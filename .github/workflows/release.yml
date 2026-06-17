@@ -56,6 +56,8 @@ jobs:
           version: npm run changeset:version
           commit: 'chore: version packages'
           title: 'chore: version packages'
+          # Per-package git tags/releases are disabled; npm run release pushes one v* tag instead.
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

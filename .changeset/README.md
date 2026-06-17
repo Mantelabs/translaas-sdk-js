@@ -77,4 +77,4 @@ Do not leave multiple stale changeset files on `main`; consolidate into one rele
 1. Commit your changeset file with your PR
 2. When your PR is merged, CI will detect the changeset
 3. CI will create a "Version Packages" PR
-4. When the version PR is merged, packages are published to npm
+4. When the version PR is merged, packages are published to npm and a single coordinated `v*` git tag is pushed (see [Git tags](#git-tags) in CONTRIBUTING.md)

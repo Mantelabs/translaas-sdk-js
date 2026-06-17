@@ -1,26 +1,8 @@
 name: Documentation
 
+# Manual only — Actions → Documentation → Run workflow.
+# Auto-runs on push/PR were removed to avoid duplicate inbox entries alongside CI.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/**/*.ts'
-      - 'packages/**/*.tsx'
-      - 'docs/**/*.md'
-      - 'typedoc.json'
-      - 'tsconfig.docs.json'
-      - 'package.json'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'packages/**/*.ts'
-      - 'packages/**/*.tsx'
-      - 'docs/**/*.md'
-      - 'typedoc.json'
-      - 'tsconfig.docs.json'
-      - 'package.json'
   workflow_dispatch:
 
 permissions:
@@ -70,7 +52,7 @@ jobs:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: build-docs
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main'
     permissions:
       pages: write
       id-token: write

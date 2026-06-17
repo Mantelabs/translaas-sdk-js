@@ -392,7 +392,34 @@ npm test -- --watch
 
 # Run type checking
 npm run type-check
+
+# Run integration tests
+npm run test:integration
+
+# Match the unified CI pipeline locally
+npm run lint && npm run type-check && npm run build && npm test && npm run test:integration
 ```
+
+### GitHub Actions workflows
+
+Routine code changes trigger a **single CI workflow** (`.github/workflows/ci.yml`) with parallel jobs:
+
+| Job | What it runs |
+| --- | --- |
+| **Build and Test** (matrix) | Lint, type-check, build on Ubuntu Node 20/22; Windows/macOS via manual dispatch |
+| **Unit Tests** | Workspace unit tests with coverage |
+| **Integration Tests** | `npm run test:integration` |
+| **CI Gate** | Fails the workflow if any job above failed |
+
+Other workflows stay separate on purpose:
+
+| Workflow | Trigger | Notes |
+| --- | --- | --- |
+| **Release** (`.github/workflows/release.yml`) | Push to `main` | Changesets versioning/publish; skips `chore: version packages` commits |
+| **Documentation** (`.github/workflows/docs.yml`) | **Manual only** (`workflow_dispatch`) | Build and deploy API docs to GitHub Pages from `main` |
+| **Changeset Check** (`.github/workflows/changeset-check.yml`) | Pull requests to `main` | Ensures package source changes include a changeset |
+
+After merging to `main`, expect **CI** plus **Release** (when applicable)—not five duplicate-looking runs.
 
 ## Additional Resources
 

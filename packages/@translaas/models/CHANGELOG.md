@@ -1,5 +1,11 @@
 # @translaas/models
 
+## 0.5.1-beta
+
+### Patch Changes
+
+- Coordinated **beta** patch release with `@translaas/caching-file@0.5.1-beta`.
+
 ## 0.5.0-beta
 
 ### Minor Changes

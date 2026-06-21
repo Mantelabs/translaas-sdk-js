@@ -1,6 +1,6 @@
 {
   "name": "@translaas/sdk",
-  "version": "0.5.0-beta",
+  "version": "0.5.1-beta",
   "description": "A strongly-typed, performant, and modular JavaScript/TypeScript SDK for consuming the Translaas Translation Delivery API",
   "private": true,
   "workspaces": [

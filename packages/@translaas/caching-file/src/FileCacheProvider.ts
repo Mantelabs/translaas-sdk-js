@@ -6,7 +6,9 @@ import {
   TranslationProject,
   TranslationGroup,
   TranslationEntryValue,
+  ProjectLocales,
 } from '@translaas/models';
+import { readProjectLocalesFromDisk } from './offlineLocales';
 
 /**
  * Cache entry metadata stored in manifest files
@@ -314,5 +316,16 @@ export class FileCacheProvider implements IOfflineCacheProvider {
       }
       // ENOENT means directory doesn't exist, which is fine
     }
+  }
+
+  async getProjectLocalesAsync(
+    project: string,
+    cancellationToken?: AbortSignal
+  ): Promise<ProjectLocales | null> {
+    if (cancellationToken?.aborted) {
+      throw new TranslaasOfflineCacheException('Operation cancelled', this.cacheDir, project);
+    }
+
+    return readProjectLocalesFromDisk(this.cacheDir, project);
   }
 }

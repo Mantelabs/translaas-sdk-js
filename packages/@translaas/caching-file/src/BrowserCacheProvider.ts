@@ -4,6 +4,7 @@ import {
   TranslationProject,
   TranslationGroup,
   TranslationEntryValue,
+  ProjectLocales,
 } from '@translaas/models';
 
 /**
@@ -347,5 +348,34 @@ export class BrowserCacheProvider implements IOfflineCacheProvider {
         error as Error
       );
     }
+  }
+
+  async getProjectLocalesAsync(
+    project: string,
+    cancellationToken?: AbortSignal
+  ): Promise<ProjectLocales | null> {
+    if (cancellationToken?.aborted) {
+      throw new TranslaasOfflineCacheException('Operation cancelled', undefined, project);
+    }
+
+    const win = this.getWindow();
+    if (!win) {
+      return null;
+    }
+
+    const prefix = `${this.keyPrefix}${project}:`;
+    const locales: string[] = [];
+
+    for (let i = 0; i < win.localStorage.length; i++) {
+      const key = win.localStorage.key(i);
+      if (key?.startsWith(prefix)) {
+        const lang = key.slice(prefix.length);
+        if (lang) {
+          locales.push(lang);
+        }
+      }
+    }
+
+    return locales.length > 0 ? new ProjectLocales(locales, { project }) : null;
   }
 }

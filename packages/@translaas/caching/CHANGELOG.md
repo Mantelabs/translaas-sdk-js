@@ -1,5 +1,12 @@
 # @translaas/caching
 
+## 0.5.1-beta
+
+### Patch Changes
+
+- Updated dependencies
+  - @translaas/models@0.5.1-beta
+
 ## 0.5.0-beta
 
 ### Patch Changes

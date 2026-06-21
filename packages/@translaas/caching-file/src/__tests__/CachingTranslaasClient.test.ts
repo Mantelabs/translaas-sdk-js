@@ -7,9 +7,11 @@ import {
   OfflineCacheOptions,
   PluralCategory,
   TranslaasApiException,
+  TranslaasOfflineCacheException,
   TranslaasOfflineCacheMissException,
   TranslationGroup,
   TranslationProject,
+  ProjectLocales,
 } from '@translaas/models';
 
 const DEFAULT_PROJECT = 'test-project';
@@ -51,6 +53,7 @@ describe('CachingTranslaasClient', () => {
       saveProjectAsync: vi.fn(),
       isCachedAsync: vi.fn(),
       clearAllAsync: vi.fn(),
+      getProjectLocalesAsync: vi.fn(),
     };
     options = {
       enabled: true,
@@ -280,6 +283,29 @@ describe('CachingTranslaasClient', () => {
       const result = await client.getProjectAsync('my-project', 'en');
 
       expect(result).toBe(cachedProject);
+    });
+  });
+
+  describe('getProjectLocalesAsync', () => {
+    it('returns cached locales in CacheOnly mode', async () => {
+      const client = createClient(OfflineFallbackMode.CacheOnly);
+      vi.mocked(cacheProvider.getProjectLocalesAsync).mockResolvedValue(
+        new ProjectLocales(['en', 'fr'], { project: 'my-project' })
+      );
+
+      const result = await client.getProjectLocalesAsync('my-project');
+
+      expect(result.locales).toEqual(['en', 'fr']);
+      expect(innerClient.getProjectLocalesAsync).not.toHaveBeenCalled();
+    });
+
+    it('throws when CacheOnly cache has no locales', async () => {
+      const client = createClient(OfflineFallbackMode.CacheOnly);
+      vi.mocked(cacheProvider.getProjectLocalesAsync).mockResolvedValue(null);
+
+      await expect(client.getProjectLocalesAsync('my-project')).rejects.toBeInstanceOf(
+        TranslaasOfflineCacheException
+      );
     });
   });
 });

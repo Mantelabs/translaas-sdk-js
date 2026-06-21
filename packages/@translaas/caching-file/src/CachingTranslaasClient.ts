@@ -177,23 +177,14 @@ export class CachingTranslaasClient implements ITranslaasClient {
   ): Promise<ProjectLocales> {
     const mode = this.options.fallbackMode ?? OfflineFallbackMode.ApiFirst;
 
-    if (mode === OfflineFallbackMode.CacheOnly) {
-      throw new TranslaasOfflineCacheException(
-        `Project locales for '${project}' were not found in the offline cache.`,
-        undefined,
-        project
-      );
-    }
-
     if (mode === OfflineFallbackMode.CacheFirst) {
-      try {
-        return await this.innerClient.getProjectLocalesAsync(project, sdkQuery, cancellationToken);
-      } catch (error) {
-        if (isNetworkOrApiError(error)) {
-          throw offlineCacheMiss(project, '*');
-        }
-        throw error;
-      }
+      return this.getProjectLocalesCacheFirst(project, sdkQuery, cancellationToken);
+    }
+    if (mode === OfflineFallbackMode.ApiFirst) {
+      return this.getProjectLocalesApiFirst(project, sdkQuery, cancellationToken);
+    }
+    if (mode === OfflineFallbackMode.CacheOnly) {
+      return this.getProjectLocalesCacheOnly(project, cancellationToken);
     }
 
     return this.innerClient.getProjectLocalesAsync(project, sdkQuery, cancellationToken);
@@ -509,6 +500,61 @@ export class CachingTranslaasClient implements ITranslaasClient {
       return cached;
     }
     throw offlineCacheMiss(project, lang);
+  }
+
+  private async getProjectLocalesCacheOnly(
+    project: string,
+    cancellationToken?: AbortSignal
+  ): Promise<ProjectLocales> {
+    const cached = await this.cacheProvider.getProjectLocalesAsync(project, cancellationToken);
+    if (cached?.locales?.length) {
+      return cached;
+    }
+    throw new TranslaasOfflineCacheException(
+      `Project locales for '${project}' were not found in the offline cache.`,
+      undefined,
+      project
+    );
+  }
+
+  private async getProjectLocalesCacheFirst(
+    project: string,
+    sdkQuery?: SdkTranslationQueryParams,
+    cancellationToken?: AbortSignal
+  ): Promise<ProjectLocales> {
+    const cached = await this.cacheProvider.getProjectLocalesAsync(project, cancellationToken);
+    if (cached?.locales?.length) {
+      return cached;
+    }
+
+    try {
+      return await this.innerClient.getProjectLocalesAsync(project, sdkQuery, cancellationToken);
+    } catch (error) {
+      if (isNetworkOrApiError(error)) {
+        throw offlineCacheMiss(project, '*');
+      }
+      throw error;
+    }
+  }
+
+  private async getProjectLocalesApiFirst(
+    project: string,
+    sdkQuery?: SdkTranslationQueryParams,
+    cancellationToken?: AbortSignal
+  ): Promise<ProjectLocales> {
+    try {
+      return await this.innerClient.getProjectLocalesAsync(project, sdkQuery, cancellationToken);
+    } catch (error) {
+      if (!isNetworkOrApiError(error)) {
+        throw error;
+      }
+
+      const cached = await this.cacheProvider.getProjectLocalesAsync(project, cancellationToken);
+      if (cached?.locales?.length) {
+        return cached;
+      }
+      throw offlineCacheMiss(project, '*');
+    }
   }
 
   private async updateGroupCache(

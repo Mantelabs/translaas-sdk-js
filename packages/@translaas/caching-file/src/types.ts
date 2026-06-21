@@ -118,4 +118,15 @@ export interface IOfflineCacheProvider {
    * ```
    */
   clearAllAsync(cancellationToken?: AbortSignal): Promise<void>;
+
+  /**
+   * Retrieves supported locale codes for a project from the offline cache export
+   * (`locales.json`, root `manifest.json`, or per-locale cache directories).
+   *
+   * @returns Project locales when found, otherwise null
+   */
+  getProjectLocalesAsync(
+    project: string,
+    cancellationToken?: AbortSignal
+  ): Promise<import('@translaas/models').ProjectLocales | null>;
 }

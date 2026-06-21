@@ -5,6 +5,7 @@ import {
   TranslationProject,
   TranslationGroup,
   HybridCacheOptions,
+  ProjectLocales,
 } from '@translaas/models';
 
 /**
@@ -301,5 +302,16 @@ export class HybridCacheProvider implements IOfflineCacheProvider {
     }
 
     await Promise.all(warmupPromises);
+  }
+
+  async getProjectLocalesAsync(
+    project: string,
+    cancellationToken?: AbortSignal
+  ): Promise<ProjectLocales | null> {
+    if (cancellationToken?.aborted) {
+      throw new TranslaasOfflineCacheException('Operation cancelled', undefined, project);
+    }
+
+    return this.l2Cache.getProjectLocalesAsync(project, cancellationToken);
   }
 }

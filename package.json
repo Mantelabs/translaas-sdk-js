@@ -1,6 +1,6 @@
 {
   "name": "@translaas/sdk",
-  "version": "0.5.1-beta",
+  "version": "0.5.2-beta",
   "description": "A strongly-typed, performant, and modular JavaScript/TypeScript SDK for consuming the Translaas Translation Delivery API",
   "private": true,
   "workspaces": [
@@ -31,8 +31,10 @@
     "clean": "npm run clean --workspaces && rm -rf node_modules dist coverage .turbo",
     "prepare": "husky install",
     "changeset": "changeset",
-    "changeset:version": "changeset version",
-    "changeset:publish": "changeset publish --no-git-tag",
+    "changeset:version": "changeset version && node scripts/sync-sibling-dependencies.mjs",
+    "changeset:publish": "node scripts/sync-sibling-dependencies.mjs validate && changeset publish --no-git-tag",
+    "sync:sibling-deps": "node scripts/sync-sibling-dependencies.mjs",
+    "validate:sibling-deps": "node scripts/sync-sibling-dependencies.mjs validate",
     "release:git-tag": "node scripts/create-coordinated-release-tag.mjs",
     "version": "npm run changeset:version",
     "release": "npm run build && npm run changeset:publish && npm run release:git-tag"

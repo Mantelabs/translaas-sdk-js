@@ -1,6 +1,6 @@
 {
   "name": "@translaas/caching",
-  "version": "0.5.1-beta",
+  "version": "0.5.2-beta",
   "description": "In-memory caching abstractions and implementations for the Translaas SDK",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -29,7 +29,7 @@
     "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
-    "@translaas/models": "*"
+    "@translaas/models": "0.5.2-beta"
   },
   "keywords": [
     "translaas",

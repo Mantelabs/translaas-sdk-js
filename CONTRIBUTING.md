@@ -532,6 +532,17 @@ Releases use **one canonical `v*` git tag per release** (for example `v0.5.0-bet
 - After a successful CI publish, `npm run release:git-tag` creates and pushes `v{version}` when that tag is not already on `origin`.
 - npm only needs published package versions; per-package git tags are not used.
 
+#### Sibling package dependency pins
+
+Published `@translaas/*` packages must **not** declare sibling dependencies as `"*"`. Wildcard ranges are fine for local workspace linking, but npm consumers that install only `@translaas/core` can end up with mismatched transitive versions (for example `@translaas/caching-file@0.4.0-beta` while core is `0.5.1-beta`).
+
+**Release expectations:**
+
+- Every `@translaas/*` dependency in a package `package.json` must pin the **exact version** of that sibling package (for example `"@translaas/models": "0.5.1-beta"`).
+- `npm run changeset:version` runs `scripts/sync-sibling-dependencies.mjs` after Changesets bumps versions so pins stay aligned across coordinated releases.
+- `npm run changeset:publish` validates pins before publishing; CI also runs `npm run validate:sibling-deps`.
+- To fix pins manually: `npm run sync:sibling-deps`.
+
 **Manual release checklist:** After `npm run changeset:publish`, create the coordinated tag if you are not using CI:
 
 ```bash
@@ -565,8 +576,10 @@ Changesets automatically:
 Available npm scripts:
 
 - `npm run changeset` - Create a new changeset interactively
-- `npm run changeset:version` - Update package versions based on changesets
-- `npm run changeset:publish` - Publish packages to npm (without per-package git tags; see [Git tags](#git-tags))
+- `npm run changeset:version` - Update package versions based on changesets (also syncs sibling dependency pins)
+- `npm run changeset:publish` - Validate sibling pins and publish packages to npm (without per-package git tags; see [Git tags](#git-tags))
+- `npm run sync:sibling-deps` - Pin all `@translaas/*` dependencies to sibling package versions
+- `npm run validate:sibling-deps` - Fail when any sibling dependency is `"*"` or out of date
 - `npm run release:git-tag` - Create and push the coordinated `v*` git tag after publish (CI only; idempotent)
 - `npm run version` - Alias for `changeset:version`
 - `npm run release` - Build, publish to npm, and push coordinated `v*` git tag

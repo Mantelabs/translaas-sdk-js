@@ -10,6 +10,7 @@ on:
     paths: &ci-paths
       - '.github/workflows/ci.yml'
       - 'packages/**'
+      - 'scripts/**'
       - 'tests/**'
       - 'vitest.config*.ts'
       - 'eslint.config.*'
@@ -75,6 +76,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Validate sibling dependency pins
+        run: npm run validate:sibling-deps
 
       - name: Generate documentation
         run: npm run docs

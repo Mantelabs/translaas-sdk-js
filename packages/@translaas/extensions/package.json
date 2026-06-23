@@ -1,6 +1,6 @@
 {
   "name": "@translaas/extensions",
-  "version": "0.5.1-beta",
+  "version": "0.5.2-beta",
   "description": "Framework integrations and extensions for the Translaas SDK",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -29,8 +29,8 @@
     "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
-    "@translaas/models": "0.5.1-beta",
-    "@translaas/client": "0.5.1-beta"
+    "@translaas/models": "0.5.2-beta",
+    "@translaas/client": "0.5.2-beta"
   },
   "keywords": [
     "translaas",

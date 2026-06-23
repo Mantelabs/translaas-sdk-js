@@ -2,12 +2,12 @@
   "mode": "pre",
   "tag": "beta",
   "initialVersions": {
-    "@translaas/caching": "0.5.1-beta",
-    "@translaas/caching-file": "0.5.1-beta",
-    "@translaas/client": "0.5.1-beta",
-    "@translaas/core": "0.5.1-beta",
-    "@translaas/extensions": "0.5.1-beta",
-    "@translaas/models": "0.5.1-beta"
+    "@translaas/caching": "0.5.2-beta",
+    "@translaas/caching-file": "0.5.2-beta",
+    "@translaas/client": "0.5.2-beta",
+    "@translaas/core": "0.5.2-beta",
+    "@translaas/extensions": "0.5.2-beta",
+    "@translaas/models": "0.5.2-beta"
   },
   "changesets": []
 }

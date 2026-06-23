@@ -1,5 +1,13 @@
 # @translaas/caching
 
+## 0.5.2-beta
+
+### Patch Changes
+
+- de96473: Pin exact sibling package versions in published tarballs so installing `@translaas/core@X` resolves all `@translaas/*` packages to `@X` without consumer overrides.
+- Updated dependencies [de96473]
+  - @translaas/models@0.5.2-beta
+
 ## 0.5.1-beta
 
 ### Patch Changes

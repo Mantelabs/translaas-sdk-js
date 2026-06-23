@@ -23,7 +23,13 @@ export default defineConfig({
         statements: 80,
       },
     },
-    include: ['**/*.test.ts', '**/*.spec.ts', '**/__tests__/**/*.ts'],
+    include: [
+      '**/*.test.ts',
+      '**/*.test.mjs',
+      '**/*.spec.ts',
+      '**/__tests__/**/*.ts',
+      '**/__tests__/**/*.mjs',
+    ],
     exclude: ['node_modules', 'dist', 'coverage'],
   },
 });

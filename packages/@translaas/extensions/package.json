@@ -29,8 +29,8 @@
     "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
-    "@translaas/models": "*",
-    "@translaas/client": "*"
+    "@translaas/models": "0.5.1-beta",
+    "@translaas/client": "0.5.1-beta"
   },
   "keywords": [
     "translaas",

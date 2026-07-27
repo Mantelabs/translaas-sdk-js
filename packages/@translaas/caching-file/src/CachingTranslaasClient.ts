@@ -232,7 +232,7 @@ export class CachingTranslaasClient implements ITranslaasClient {
       return null;
     }
 
-    let template: string | null;
+    let template: string | null = null;
 
     if (group.hasPluralForms(entry)) {
       const category = determinePluralCategory(number);

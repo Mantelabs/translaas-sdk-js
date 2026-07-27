@@ -37,6 +37,8 @@ export default tseslint.config(
       ],
       '@typescript-eslint/no-non-null-assertion': 'warn',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // ESLint 10 recommended; warn until existing assignments are cleaned up
+      'no-useless-assignment': 'warn',
     },
   }
 );

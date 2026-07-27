@@ -1,5 +1,15 @@
 # @translaas/caching-file
 
+## 0.5.3
+
+### Patch Changes
+
+- Upgrade development toolchain (ESLint 10) and publish stable release.
+- Updated dependencies
+  - @translaas/caching@0.5.3
+  - @translaas/client@0.5.3
+  - @translaas/models@0.5.3
+
 ## 0.5.2-beta
 
 ### Patch Changes

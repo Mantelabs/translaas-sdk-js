@@ -1,5 +1,11 @@
 # @translaas/models
 
+## 0.5.3
+
+### Patch Changes
+
+- Upgrade development toolchain (ESLint 10) and publish stable release.
+
 ## 0.5.2-beta
 
 ### Patch Changes

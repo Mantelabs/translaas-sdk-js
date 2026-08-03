@@ -6,7 +6,7 @@ import { HybridCacheProvider } from '@translaas/caching-file';
 import { LanguageResolver } from '@translaas/extensions';
 import { DefaultLanguageProvider } from '@translaas/extensions';
 import { createMockServer, defaultMockData, type MockApiConfig } from '../setup/mock-api';
-import { createTestClientOptions } from '../fixtures/translation-data';
+import { createTestClientOptions, testProject } from '../fixtures/translation-data';
 import { createFileCacheProvider, delay } from '../setup/test-helpers';
 import { TranslationProject } from '@translaas/models';
 
@@ -54,7 +54,7 @@ describe('Full Stack Integration', () => {
     it('should integrate client with memory cache for project caching', async () => {
       const memoryCache = new MemoryCacheProvider();
       const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-      const project = 'test-project';
+      const project = testProject;
       const lang = 'en';
 
       // First request - fetch from API and cache
@@ -75,7 +75,7 @@ describe('Full Stack Integration', () => {
     it('should handle cache expiration with client requests', async () => {
       const memoryCache = new MemoryCacheProvider();
       const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-      const project = 'test-project';
+      const project = testProject;
       const lang = 'en';
 
       // Fetch and cache with short expiration
@@ -101,7 +101,7 @@ describe('Full Stack Integration', () => {
 
       try {
         const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Fetch from API
@@ -133,7 +133,7 @@ describe('Full Stack Integration', () => {
         expect(cached).toBeNull();
 
         // Fetch from API as fallback
-        const project = await client.getProjectAsync('test-project', 'en');
+        const project = await client.getProjectAsync(testProject, 'en');
         expect(project).toBeDefined();
       } finally {
         await cleanup();
@@ -153,7 +153,7 @@ describe('Full Stack Integration', () => {
         });
 
         const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Fetch from API
@@ -188,7 +188,7 @@ describe('Full Stack Integration', () => {
         });
 
         const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-        const project = 'test-project';
+        const project = testProject;
 
         // Fetch and cache multiple languages
         const projectEn = await client.getProjectAsync(project, 'en');
@@ -256,15 +256,15 @@ describe('Full Stack Integration', () => {
 
         // Fetch and cache project
         const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-        const project = await client.getProjectAsync('test-project', 'en');
-        await fileCache.saveProjectAsync('test-project', 'en', project);
+        const project = await client.getProjectAsync(testProject, 'en');
+        await fileCache.saveProjectAsync(testProject, 'en', project);
 
         // Service should work with resolver
         const result = await service.t('common', 'welcome');
         expect(result).toBe('Welcome');
 
         // Cache should be available
-        const cached = await fileCache.getProjectAsync('test-project', 'en');
+        const cached = await fileCache.getProjectAsync(testProject, 'en');
         expect(cached).not.toBeNull();
       } finally {
         await cleanup();
@@ -291,8 +291,8 @@ describe('Full Stack Integration', () => {
 
         // Step 2: Cache the project
         const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-        const project = await client.getProjectAsync('test-project', 'en');
-        await fileCache.saveProjectAsync('test-project', 'en', project);
+        const project = await client.getProjectAsync(testProject, 'en');
+        await fileCache.saveProjectAsync(testProject, 'en', project);
 
         // Step 3: Subsequent requests should work
         const result2 = await service.t('common', 'greeting', 'en', undefined, {
@@ -310,7 +310,7 @@ describe('Full Stack Integration', () => {
 
       try {
         const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-        const project = 'test-project';
+        const project = testProject;
 
         // Fetch and cache multiple languages
         const en = await client.getProjectAsync(project, 'en');

@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+import { testProject } from '../fixtures/translation-data';
 
 /**
  * Mock API server for integration tests using MSW (Mock Service Worker).
@@ -32,65 +33,81 @@ export const defaultMockData: MockTranslationData = {
     'common.welcome.en': 'Welcome',
     'common.welcome.fr': 'Bienvenue',
     'common.welcome.es': 'Bienvenido',
+    'common.welcome.message.en':
+      'This is a sample application demonstrating the Translaas SDK across different .NET platforms.',
+    'common.welcome.message.fr':
+      "Ceci est une application d'exemple démontrant le SDK Translaas sur différentes plateformes .NET.",
+    'common.welcome.message.es':
+      'Esta es una aplicación de ejemplo que demuestra el SDK Translaas en diferentes plataformas .NET.',
     'common.greeting.en': 'Hello {name}',
     'common.greeting.fr': 'Bonjour {name}',
     'common.greeting.es': 'Hola {name}',
-    'messages.items.en': '{count} items',
-    'messages.items.fr': '{count} éléments',
-    'messages.items.es': '{count} elementos',
+    'messages.item.en': '{N} items',
+    'messages.item.fr': '{N} articles',
+    'messages.item.es': '{N} artículos',
   },
   groups: {
-    'test-project.common.en': {
+    [`${testProject}.common.en`]: {
       welcome: 'Welcome',
+      'welcome.message':
+        'This is a sample application demonstrating the Translaas SDK across different .NET platforms.',
       greeting: 'Hello {name}',
     },
-    'test-project.common.fr': {
+    [`${testProject}.common.fr`]: {
       welcome: 'Bienvenue',
+      'welcome.message':
+        "Ceci est une application d'exemple démontrant le SDK Translaas sur différentes plateformes .NET.",
       greeting: 'Bonjour {name}',
     },
-    'test-project.messages.en': {
-      items: '{count} items',
+    [`${testProject}.messages.en`]: {
+      item: '{N} items',
       error: 'An error occurred',
     },
-    'test-project.messages.fr': {
-      items: '{count} éléments',
-      error: 'Une erreur est survenue',
+    [`${testProject}.messages.fr`]: {
+      item: '{N} articles',
+      error: "Une erreur s'est produite",
     },
   },
   projects: {
-    'test-project.en': {
+    [`${testProject}.en`]: {
       common: {
         welcome: 'Welcome',
+        'welcome.message':
+          'This is a sample application demonstrating the Translaas SDK across different .NET platforms.',
         greeting: 'Hello {name}',
       },
       messages: {
-        items: '{count} items',
+        item: '{N} items',
         error: 'An error occurred',
       },
     },
-    'test-project.fr': {
+    [`${testProject}.fr`]: {
       common: {
         welcome: 'Bienvenue',
+        'welcome.message':
+          "Ceci est une application d'exemple démontrant le SDK Translaas sur différentes plateformes .NET.",
         greeting: 'Bonjour {name}',
       },
       messages: {
-        items: '{count} éléments',
-        error: 'Une erreur est survenue',
+        item: '{N} articles',
+        error: "Une erreur s'est produite",
       },
     },
-    'test-project.es': {
+    [`${testProject}.es`]: {
       common: {
         welcome: 'Bienvenido',
+        'welcome.message':
+          'Esta es una aplicación de ejemplo que demuestra el SDK Translaas en diferentes plataformas .NET.',
         greeting: 'Hola {name}',
       },
       messages: {
-        items: '{count} elementos',
+        item: '{N} artículos',
         error: 'Ocurrió un error',
       },
     },
   },
   locales: {
-    'test-project': ['en', 'fr', 'es'],
+    [testProject]: ['en', 'fr', 'es'],
   },
 };
 

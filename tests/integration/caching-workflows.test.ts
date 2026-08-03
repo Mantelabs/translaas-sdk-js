@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { TranslaasClient } from '@translaas/client';
 import { createMockServer, defaultMockData, type MockApiConfig } from '../setup/mock-api';
-import { createTestClientOptions } from '../fixtures/translation-data';
+import { createTestClientOptions, testProject } from '../fixtures/translation-data';
 import { createFileCacheProvider, delay } from '../setup/test-helpers';
 import { MemoryCacheProvider } from '@translaas/caching';
 import { HybridCacheProvider } from '@translaas/caching-file';
@@ -74,12 +74,12 @@ describe('Caching Workflows', () => {
       const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
 
       // Fetch group from API
-      const group = await client.getGroupAsync('test-project', 'common', 'en');
+      const group = await client.getGroupAsync(testProject, 'common', 'en');
       expect(group).toBeDefined();
       expect(requestCount).toBeGreaterThan(0);
 
       // Cache the group
-      const cacheKey = 'test-project:common:en';
+      const cacheKey = `${testProject}:common:en`;
       cache.set(cacheKey, group, 60000);
 
       // Verify cache hit
@@ -129,7 +129,7 @@ describe('Caching Workflows', () => {
       const { provider: cache, cleanup } = fileCacheHelper;
 
       try {
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Create test project data
@@ -139,7 +139,7 @@ describe('Caching Workflows', () => {
             greeting: 'Hello {name}',
           },
           messages: {
-            items: '{count} items',
+            item: '{N} items',
           },
         });
 
@@ -173,7 +173,7 @@ describe('Caching Workflows', () => {
       const { provider: cache, cleanup } = fileCacheHelper;
 
       try {
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // FileCacheProvider stores projects, groups are extracted from projects
@@ -183,7 +183,7 @@ describe('Caching Workflows', () => {
             greeting: 'Hello',
           },
           messages: {
-            items: '{count} items',
+            item: '{N} items',
           },
         });
 
@@ -212,7 +212,7 @@ describe('Caching Workflows', () => {
           maxMemoryCacheEntries: 100,
         });
 
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         const projectData = new TranslationProject({
@@ -248,7 +248,7 @@ describe('Caching Workflows', () => {
           maxMemoryCacheEntries: 2, // Small limit for testing
         });
 
-        const project = 'test-project';
+        const project = testProject;
         const projectData = new TranslationProject({
           common: { welcome: 'Welcome' },
         });

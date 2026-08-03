@@ -3,7 +3,7 @@ import { TranslaasClient } from '@translaas/client';
 import { TranslaasService } from '@translaas/client';
 import { TranslaasApiException, TranslaasConfigurationException } from '@translaas/models';
 import { createMockServer, type MockApiConfig } from '../setup/mock-api';
-import { createTestClientOptions } from '../fixtures/translation-data';
+import { createTestClientOptions, testProject } from '../fixtures/translation-data';
 import { http, HttpResponse } from 'msw';
 
 /**
@@ -250,7 +250,7 @@ describe('Error Scenarios', () => {
       );
 
       const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-      await expect(client.getGroupAsync('test-project', 'common', 'en')).rejects.toThrow();
+      await expect(client.getGroupAsync(testProject, 'common', 'en')).rejects.toThrow();
     });
 
     it('should handle empty response', async () => {

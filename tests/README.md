@@ -17,6 +17,7 @@ Integration tests verify that all SDK components work together correctly:
 ```
 tests/
 ├── integration/           # Integration test files
+│   ├── live/              # Optional live API tests (env-gated)
 │   ├── basic-translation.test.ts
 │   ├── caching-workflows.test.ts
 │   ├── language-resolution.test.ts
@@ -29,6 +30,15 @@ tests/
 └── fixtures/              # Test data fixtures
     └── translation-data.ts
 ```
+
+## Mock vs live integration tests
+
+| Command                         | API               | CI (PR)              |
+| ------------------------------- | ----------------- | -------------------- |
+| `npm run test:integration`      | MSW mocks         | Yes                  |
+| `npm run test:integration:live` | Real delivery API | No (manual workflow) |
+
+Live tests require `TRANSLAAS_API_KEY` and skip when unset. See [`integration/live/README.md`](integration/live/README.md).
 
 ## Running Tests
 
@@ -44,7 +54,17 @@ npm run test:integration
 npm run test:integration:watch
 ```
 
-### Run all tests (unit + integration)
+### Run live API integration tests (optional)
+
+Requires `TRANSLAAS_API_KEY`. Skips when unset.
+
+```bash
+npm run test:integration:live
+```
+
+See [`tests/integration/live/README.md`](integration/live/README.md) for local Docker setup.
+
+### Run all tests (unit + mock integration)
 
 ```bash
 npm run test:all

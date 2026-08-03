@@ -318,8 +318,19 @@ npm run build
 ### Running Tests
 
 ```bash
-npm test
+npm test                      # unit tests (all packages)
+npm run test:integration      # MSW mock integration tests (CI default)
 ```
+
+Optional live API integration tests against local Docker or staging (require `TRANSLAAS_API_KEY`; skipped when unset):
+
+```bash
+$env:TRANSLAAS_API_KEY = "your-key"
+$env:TRANSLAAS_BASE_URL = "https://api.translaas.local"  # optional
+npm run test:integration:live
+```
+
+See [`tests/integration/live/README.md`](tests/integration/live/README.md) for fixture data and GitHub Actions workflow.
 
 ## API Endpoints
 

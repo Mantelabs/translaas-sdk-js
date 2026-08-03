@@ -1,0 +1,45 @@
+name: Integration Tests
+
+# Optional live API checks. Configure repository secrets TRANSLAAS_BASE_URL and
+# TRANSLAAS_API_KEY (never commit API keys). Default branch CI does not require these.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-api:
+    name: Live API integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Run live integration tests
+        env:
+          TRANSLAAS_BASE_URL: ${{ secrets.TRANSLAAS_BASE_URL }}
+          TRANSLAAS_API_KEY: ${{ secrets.TRANSLAAS_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${TRANSLAAS_BASE_URL:-}" || -z "${TRANSLAAS_API_KEY:-}" ]]; then
+            echo "Set repository secrets TRANSLAAS_BASE_URL and TRANSLAAS_API_KEY before running this workflow."
+            exit 1
+          fi
+          npm run test:integration:live

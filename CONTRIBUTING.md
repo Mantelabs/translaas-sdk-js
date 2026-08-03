@@ -393,8 +393,11 @@ npm test -- --watch
 # Run type checking
 npm run type-check
 
-# Run integration tests
+# Run integration tests (MSW mocks — no secrets)
 npm run test:integration
+
+# Optional live API integration tests (requires TRANSLAAS_API_KEY; skipped when unset)
+npm run test:integration:live
 
 # Match the unified CI pipeline locally
 npm run lint && npm run type-check && npm run build && npm test && npm run test:integration
@@ -408,8 +411,10 @@ Routine code changes trigger a **single CI workflow** (`.github/workflows/ci.yml
 | --- | --- |
 | **Build and Test** (matrix) | Lint, type-check, build on Ubuntu Node 20/22; Windows/macOS via manual dispatch |
 | **Unit Tests** | Workspace unit tests with coverage |
-| **Integration Tests** | `npm run test:integration` |
+| **Integration Tests** | `npm run test:integration` (MSW mocks only) |
 | **CI Gate** | Fails the workflow if any job above failed |
+
+Optional **live API** checks: run the **Integration Tests** workflow (`.github/workflows/integration-tests.yml`) manually with repository secrets `TRANSLAAS_BASE_URL` and `TRANSLAAS_API_KEY`. Local: `npm run test:integration:live` — see [`tests/integration/live/README.md`](tests/integration/live/README.md).
 
 Other workflows stay separate on purpose:
 

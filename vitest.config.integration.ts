@@ -15,7 +15,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/integration/**/*.test.ts'],
-    exclude: ['node_modules', 'dist', 'coverage'],
+    exclude: ['node_modules', 'dist', 'coverage', 'tests/integration/live/**'],
     testTimeout: 30000, // 30 seconds for integration tests
     hookTimeout: 30000,
     teardownTimeout: 10000,

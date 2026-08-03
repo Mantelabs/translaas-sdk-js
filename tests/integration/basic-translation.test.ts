@@ -2,7 +2,13 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
 import { TranslaasClient } from '@translaas/client';
 import { TranslaasService } from '@translaas/client';
 import { createMockServer, defaultMockData, type MockApiConfig } from '../setup/mock-api';
-import { createTestClientOptions } from '../fixtures/translation-data';
+import {
+  createTestClientOptions,
+  testProject,
+  testEntry,
+  testPluralGroup,
+  testPluralEntry,
+} from '../fixtures/translation-data';
 
 /**
  * Integration tests for basic translation flow
@@ -37,9 +43,11 @@ describe('Basic Translation Flow', () => {
   describe('TranslaasClient - getEntryAsync', () => {
     it('should fetch a single translation entry', async () => {
       const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-      const result = await client.getEntryAsync('common', 'welcome', 'en');
+      const result = await client.getEntryAsync('common', testEntry, 'en');
 
-      expect(result).toBe('Welcome');
+      expect(result).toBe(
+        'This is a sample application demonstrating the Translaas SDK across different .NET platforms.'
+      );
     });
 
     it('should fetch translation with parameters', async () => {
@@ -53,8 +61,8 @@ describe('Basic Translation Flow', () => {
 
     it('should fetch translation with pluralization', async () => {
       const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-      const result = await client.getEntryAsync('messages', 'items', 'en', 5, {
-        count: '5',
+      const result = await client.getEntryAsync(testPluralGroup, testPluralEntry, 'en', 5, {
+        N: '5',
       });
 
       expect(result).toBe('5 items');
@@ -76,11 +84,14 @@ describe('Basic Translation Flow', () => {
   describe('TranslaasClient - getGroupAsync', () => {
     it('should fetch a translation group', async () => {
       const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-      const group = await client.getGroupAsync('test-project', 'common', 'en');
+      const group = await client.getGroupAsync(testProject, 'common', 'en');
 
       expect(group).toBeDefined();
       expect(group.entries).toBeDefined();
       expect(group.entries.welcome).toBe('Welcome');
+      expect(group.entries['welcome.message']).toBe(
+        'This is a sample application demonstrating the Translaas SDK across different .NET platforms.'
+      );
       expect(group.entries.greeting).toBe('Hello {name}');
     });
   });
@@ -88,7 +99,7 @@ describe('Basic Translation Flow', () => {
   describe('TranslaasClient - getProjectAsync', () => {
     it('should fetch a translation project', async () => {
       const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-      const project = await client.getProjectAsync('test-project', 'en');
+      const project = await client.getProjectAsync(testProject, 'en');
 
       expect(project).toBeDefined();
       expect(project.groups).toBeDefined();
@@ -100,7 +111,7 @@ describe('Basic Translation Flow', () => {
   describe('TranslaasClient - getProjectLocalesAsync', () => {
     it('should fetch project locales', async () => {
       const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-      const locales = await client.getProjectLocalesAsync('test-project');
+      const locales = await client.getProjectLocalesAsync(testProject);
 
       expect(locales).toBeDefined();
       expect(locales.locales).toContain('en');
@@ -116,8 +127,10 @@ describe('Basic Translation Flow', () => {
         defaultLanguage: 'en',
       });
 
-      const result = await service.t('common', 'welcome', 'en');
-      expect(result).toBe('Welcome');
+      const result = await service.t('common', testEntry, 'en');
+      expect(result).toBe(
+        'This is a sample application demonstrating the Translaas SDK across different .NET platforms.'
+      );
     });
 
     it('should translate with default language', async () => {
@@ -148,8 +161,8 @@ describe('Basic Translation Flow', () => {
         defaultLanguage: 'en',
       });
 
-      const result = await service.t('messages', 'items', 'en', 3, {
-        count: '3',
+      const result = await service.t(testPluralGroup, testPluralEntry, 'en', 3, {
+        N: '3',
       });
       expect(result).toBe('3 items');
     });

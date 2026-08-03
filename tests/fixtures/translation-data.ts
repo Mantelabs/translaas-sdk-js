@@ -6,12 +6,14 @@ import {
 } from '@translaas/models';
 
 /**
- * Test fixtures for translation data
+ * Test fixtures aligned with translaas-sdk-examples (translaas_sdk_samples_strings.csv).
  */
 
-export const testProject = 'test-project';
+export const testProject = 'translaas-sdk-samples';
 export const testGroup = 'common';
-export const testEntry = 'welcome';
+export const testEntry = 'welcome.message';
+export const testPluralGroup = 'messages';
+export const testPluralEntry = 'item';
 export const testLanguages = ['en', 'fr', 'es'] as const;
 
 /**
@@ -20,23 +22,29 @@ export const testLanguages = ['en', 'fr', 'es'] as const;
 export const translationEntries = {
   en: {
     welcome: 'Welcome',
+    'welcome.message':
+      'This is a sample application demonstrating the Translaas SDK across different .NET platforms.',
     greeting: 'Hello {name}',
     goodbye: 'Goodbye',
-    items: '{count} items',
+    item: '{N} items',
     error: 'An error occurred',
   },
   fr: {
     welcome: 'Bienvenue',
+    'welcome.message':
+      "Ceci est une application d'exemple démontrant le SDK Translaas sur différentes plateformes .NET.",
     greeting: 'Bonjour {name}',
     goodbye: 'Au revoir',
-    items: '{count} éléments',
-    error: 'Une erreur est survenue',
+    item: '{N} articles',
+    error: "Une erreur s'est produite",
   },
   es: {
     welcome: 'Bienvenido',
+    'welcome.message':
+      'Esta es una aplicación de ejemplo que demuestra el SDK Translaas en diferentes plataformas .NET.',
     greeting: 'Hola {name}',
     goodbye: 'Adiós',
-    items: '{count} elementos',
+    item: '{N} artículos',
     error: 'Ocurrió un error',
   },
 } as const;
@@ -64,11 +72,12 @@ export function createTranslationProject(project: string, lang: string): Transla
   return new TranslationProjectClass({
     common: {
       welcome: entries.welcome,
+      'welcome.message': entries['welcome.message'],
       greeting: entries.greeting,
       goodbye: entries.goodbye,
     },
     messages: {
-      items: entries.items,
+      item: entries.item,
       error: entries.error,
     },
   });

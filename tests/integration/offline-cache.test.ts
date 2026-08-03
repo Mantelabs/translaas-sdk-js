@@ -5,7 +5,7 @@ import { HybridCacheProvider } from '@translaas/caching-file';
 import { LanguageResolver } from '@translaas/extensions';
 import { DefaultLanguageProvider } from '@translaas/extensions';
 import { createMockServer, type MockApiConfig } from '../setup/mock-api';
-import { createTestClientOptions } from '../fixtures/translation-data';
+import { createTestClientOptions, testProject } from '../fixtures/translation-data';
 import { createFileCacheProvider } from '../setup/test-helpers';
 import { http, HttpResponse } from 'msw';
 import { TranslationProject } from '@translaas/models';
@@ -47,7 +47,7 @@ describe('Offline Cache Workflows', () => {
       const { provider: fileCache, cleanup } = fileCacheHelper;
 
       try {
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Pre-populate cache with data
@@ -57,7 +57,7 @@ describe('Offline Cache Workflows', () => {
             greeting: 'Hello {name} (cached)',
           },
           messages: {
-            items: '{count} items (cached)',
+            item: '{N} items (cached)',
           },
         });
 
@@ -110,7 +110,7 @@ describe('Offline Cache Workflows', () => {
           maxMemoryCacheEntries: 100,
         });
 
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Pre-populate L2 cache
@@ -150,7 +150,7 @@ describe('Offline Cache Workflows', () => {
       const { provider: fileCache, cleanup } = fileCacheHelper;
 
       try {
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Pre-populate cache
@@ -183,7 +183,7 @@ describe('Offline Cache Workflows', () => {
       const { provider: fileCache, cleanup } = fileCacheHelper;
 
       try {
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Pre-populate cache
@@ -216,7 +216,7 @@ describe('Offline Cache Workflows', () => {
       const { provider: fileCache, cleanup } = fileCacheHelper;
 
       try {
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Pre-populate cache
@@ -251,7 +251,7 @@ describe('Offline Cache Workflows', () => {
       const { provider: fileCache, cleanup } = fileCacheHelper;
 
       try {
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Pre-populate cache
@@ -281,7 +281,7 @@ describe('Offline Cache Workflows', () => {
 
       try {
         const client = new TranslaasClient(createTestClientOptions(mockConfig.baseUrl));
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // First, fetch from API and cache it
@@ -311,7 +311,7 @@ describe('Offline Cache Workflows', () => {
       const { provider: fileCache, cleanup } = fileCacheHelper;
 
       try {
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Save initial data
@@ -349,7 +349,7 @@ describe('Offline Cache Workflows', () => {
       const { provider: fileCache, cleanup } = fileCacheHelper;
 
       try {
-        const project = 'test-project';
+        const project = testProject;
         const lang = 'en';
 
         // Save data
@@ -396,7 +396,7 @@ describe('Offline Cache Workflows', () => {
           },
         });
 
-        await fileCache.saveProjectAsync('test-project', 'en', projectData);
+        await fileCache.saveProjectAsync(testProject, 'en', projectData);
 
         // Service should work (though it doesn't directly use cache, this tests the pattern)
         const result = await service.t('common', 'welcome', 'en');

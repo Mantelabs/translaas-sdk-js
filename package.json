@@ -20,6 +20,8 @@
     "test:coverage": "npm run test:coverage --workspaces",
     "test:integration": "vitest run --config vitest.config.integration.ts",
     "test:integration:watch": "vitest --config vitest.config.integration.ts",
+    "test:integration:live": "vitest run --config vitest.config.integration.live.ts",
+    "test:integration:live:watch": "vitest --config vitest.config.integration.live.ts",
     "test:all": "npm run test && npm run test:integration",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

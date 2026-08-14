@@ -12,6 +12,11 @@ updates:
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    # TypeScript 7 is the native (Go) compiler and does not ship the JS API that
+    # typedoc 0.28 and typescript-eslint 8 still require. Keep the compiler on 6.0.x.
+    ignore:
+      - dependency-name: 'typescript'
+        versions: ['>=7.0.0']
     # Group updates for workspace packages
     groups:
       typescript:

@@ -4,6 +4,8 @@
     "module": "ESNext",
     "lib": ["ES2020"],
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "types": ["node"],
     "resolveJsonModule": true,
     "declaration": false,
     "declarationMap": false,

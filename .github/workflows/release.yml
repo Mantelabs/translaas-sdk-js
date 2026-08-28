@@ -50,7 +50,7 @@ jobs:
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           publish: npm run release
           version: npm run changeset:version

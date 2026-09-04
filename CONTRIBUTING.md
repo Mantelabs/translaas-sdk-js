@@ -595,7 +595,7 @@ The GitHub Actions workflow (`.github/workflows/release.yml`) automatically:
 - ✅ Checks for changesets on every push to `main`
 - ✅ Creates a "Version Packages" PR when changesets are detected
 - ✅ Publishes packages to npm when the version PR is merged
-- ✅ Pushes one coordinated `v*` git tag per release (`createGithubReleases: false`; no per-package git tags)
+- ✅ Pushes one coordinated `v*` git tag per release (`create-github-releases: false`; no per-package git tags)
 - ✅ Updates changelogs automatically
 - ✅ Prevents duplicate runs (skips commits from the changesets action itself)
 

@@ -1,6 +1,6 @@
 {
   "name": "@translaas/caching-file",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "description": "File-based offline caching with hybrid caching support for the Translaas SDK",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -30,9 +30,9 @@
     "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
-    "@translaas/models": "0.5.3",
-    "@translaas/client": "0.5.3",
-    "@translaas/caching": "0.5.3"
+    "@translaas/models": "0.6.0",
+    "@translaas/client": "0.5.4",
+    "@translaas/caching": "0.5.4"
   },
   "keywords": [
     "translaas",

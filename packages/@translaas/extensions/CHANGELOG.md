@@ -1,5 +1,13 @@
 # @translaas/extensions
 
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies [dd52586]
+  - @translaas/models@0.6.0
+  - @translaas/client@0.5.4
+
 ## 0.5.3
 
 ### Patch Changes

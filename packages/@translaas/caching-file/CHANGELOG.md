@@ -1,5 +1,18 @@
 # @translaas/caching-file
 
+## 0.6.0
+
+### Minor Changes
+
+- dd52586: Use Intl.PluralRules (CLDR) for plural category resolution in PluralResolver and offline CachingTranslaasClient GetEntry. Removes getPattern and exported determinePluralCategory (one/other). Offline plural selection is now locale-aware; live HTTP still sends n to the server.
+
+### Patch Changes
+
+- Updated dependencies [dd52586]
+  - @translaas/models@0.6.0
+  - @translaas/caching@0.5.4
+  - @translaas/client@0.5.4
+
 ## 0.5.3
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@translaas/client",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Core HTTP client implementation for the Translaas Translation Delivery API",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -29,8 +29,8 @@
     "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
-    "@translaas/models": "0.5.3",
-    "@translaas/extensions": "0.5.3"
+    "@translaas/models": "0.6.0",
+    "@translaas/extensions": "0.5.4"
   },
   "keywords": [
     "translaas",

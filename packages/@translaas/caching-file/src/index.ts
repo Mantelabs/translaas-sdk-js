@@ -4,7 +4,7 @@ export { FileCacheProvider } from './FileCacheProvider';
 export { BrowserCacheProvider } from './BrowserCacheProvider';
 export { HybridCacheProvider } from './HybridCacheProvider';
 export { CachingTranslaasClient } from './CachingTranslaasClient';
-export { determinePluralCategory, substituteParameters } from './offlineHelpers';
+export { substituteParameters } from './offlineHelpers';
 export {
   parseLocalesFromCacheFile,
   parseLocalesFromManifest,

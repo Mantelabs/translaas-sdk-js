@@ -1,17 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { determinePluralCategory, substituteParameters } from '../offlineHelpers';
-import { PluralCategory } from '@translaas/models';
-
-describe('determinePluralCategory', () => {
-  it('returns one for singular counts', () => {
-    expect(determinePluralCategory(1)).toBe(PluralCategory.One);
-  });
-
-  it('returns other for non-singular counts', () => {
-    expect(determinePluralCategory(5)).toBe(PluralCategory.Other);
-    expect(determinePluralCategory(undefined)).toBe(PluralCategory.Other);
-  });
-});
+import { substituteParameters } from '../offlineHelpers';
 
 describe('substituteParameters', () => {
   it('replaces {name} placeholders only', () => {

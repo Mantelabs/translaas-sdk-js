@@ -1,13 +1,3 @@
-import { PluralCategory } from '@translaas/models';
-
-/** Matches .NET offline `DeterminePluralCategory` (one/other only). */
-export function determinePluralCategory(number: number | undefined): PluralCategory {
-  if (number === undefined) {
-    return PluralCategory.Other;
-  }
-  return number === 1 ? PluralCategory.One : PluralCategory.Other;
-}
-
 function getParamValue(parameters: Record<string, string>, name: string): string | undefined {
   if (Object.prototype.hasOwnProperty.call(parameters, name)) {
     return parameters[name];

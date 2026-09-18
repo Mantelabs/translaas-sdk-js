@@ -252,6 +252,50 @@ describe('TranslationGroup', () => {
       expect(group.getPluralFormForNumber('item', -1, 'en')).toBe('one item');
       expect(group.getPluralFormForNumber('item', -2, 'en')).toBe('{count} items');
     });
+
+    it('getPluralFormForNumber_whenHebrewTwo_selectsTwoForm', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.One]: 'פריט אחד',
+          [PluralCategory.Two]: 'שני פריטים',
+          [PluralCategory.Other]: '{count} פריטים',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', 2, 'he')).toBe('שני פריטים');
+    });
+
+    it('getPluralFormForNumber_whenPolishTwo_selectsFewForm', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.One]: 'jeden element',
+          [PluralCategory.Few]: '{count} elementy',
+          [PluralCategory.Many]: '{count} elementów',
+          [PluralCategory.Other]: '{count} elementów',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', 2, 'pl')).toBe('{count} elementy');
+    });
+
+    it('getPluralFormForNumber_whenPortuguesePortugalZero_selectsOther', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.One]: 'um item',
+          [PluralCategory.Other]: '{count} itens',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', 0, 'pt-PT')).toBe('{count} itens');
+      expect(group.getPluralFormForNumber('item', 0, 'pt')).toBe('um item');
+    });
+
+    it('getPluralFormForNumber_whenJapaneseOne_selectsOtherViaIntl', () => {
+      const group = new TranslationGroup({
+        item: {
+          [PluralCategory.One]: 'one item',
+          [PluralCategory.Other]: '{count} items',
+        },
+      });
+      expect(group.getPluralFormForNumber('item', 1, 'ja')).toBe('{count} items');
+    });
   });
 
   describe('edge cases', () => {

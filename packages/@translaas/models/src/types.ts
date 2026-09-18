@@ -585,9 +585,9 @@ export class TranslationGroup {
 
   /**
    * Gets the appropriate plural form for an entry based on a number and language code.
-   * This method automatically resolves the plural category using PluralResolver and retrieves
-   * the corresponding translation. Falls back to "other" category if the resolved category
-   * is not available.
+   * This method automatically resolves the plural category using {@link PluralResolver}
+   * (`Intl.PluralRules` / CLDR) and retrieves the corresponding translation. Falls back to
+   * the "other" category if the resolved category is not available.
    *
    * @param key Entry key
    * @param number The number to determine plural category for

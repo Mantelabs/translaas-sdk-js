@@ -14,7 +14,7 @@ import {
   ReportMissingKeysRequestBody,
   ValidateApiKeyResponse,
 } from '@translaas/models';
-import { determinePluralCategory, substituteParameters } from './offlineHelpers';
+import { substituteParameters } from './offlineHelpers';
 
 function isNetworkOrApiError(error: unknown): boolean {
   if (error instanceof TranslaasApiException) {
@@ -62,7 +62,9 @@ function offlineCacheMiss(
 /**
  * Decorator client that adds offline cache orchestration (CacheFirst / ApiFirst / CacheOnly).
  *
- * Offline plural resolution uses .NET-aligned one/other rules; substitution uses `{name}` only.
+ * Offline plural selection uses CLDR via `TranslationGroup.getPluralFormForNumber`
+ * (`Intl.PluralRules`). Live API GetEntry still sends `n` and lets the server select.
+ * Substitution uses `{name}` placeholders only.
  */
 export class CachingTranslaasClient implements ITranslaasClient {
   constructor(
@@ -225,6 +227,7 @@ export class CachingTranslaasClient implements ITranslaasClient {
   private resolveEntryFromGroup(
     group: TranslationGroup | null,
     entry: string,
+    lang: string,
     number?: number,
     parameters?: Record<string, string>
   ): string | null {
@@ -232,13 +235,12 @@ export class CachingTranslaasClient implements ITranslaasClient {
       return null;
     }
 
-    let template: string | null = null;
-
+    let template: string | null;
     if (group.hasPluralForms(entry)) {
-      const category = determinePluralCategory(number);
-      template = group.getPluralForm(entry, category);
-      if (template == null && category !== PluralCategory.Other) {
+      if (number === undefined) {
         template = group.getPluralForm(entry, PluralCategory.Other);
+      } else {
+        template = group.getPluralFormForNumber(entry, number, lang);
       }
     } else {
       template = group.getValue(entry);
@@ -265,7 +267,7 @@ export class CachingTranslaasClient implements ITranslaasClient {
       lang,
       cancellationToken
     );
-    const resolved = this.resolveEntryFromGroup(cachedGroup, entry, number, parameters);
+    const resolved = this.resolveEntryFromGroup(cachedGroup, entry, lang, number, parameters);
     if (resolved != null) {
       return resolved;
     }
@@ -321,7 +323,7 @@ export class CachingTranslaasClient implements ITranslaasClient {
         lang,
         cancellationToken
       );
-      const resolved = this.resolveEntryFromGroup(cachedGroup, entry, number, parameters);
+      const resolved = this.resolveEntryFromGroup(cachedGroup, entry, lang, number, parameters);
       if (resolved != null) {
         return resolved;
       }
@@ -343,7 +345,7 @@ export class CachingTranslaasClient implements ITranslaasClient {
       lang,
       cancellationToken
     );
-    const resolved = this.resolveEntryFromGroup(cachedGroup, entry, number, parameters);
+    const resolved = this.resolveEntryFromGroup(cachedGroup, entry, lang, number, parameters);
     if (resolved != null) {
       return resolved;
     }

@@ -25,10 +25,7 @@ function createPluralGroup(
   forms: Partial<Record<PluralCategory, string>>
 ): TranslationGroup {
   return new TranslationGroup({
-    [key]: {
-      [PluralCategory.One]: forms.one ?? '',
-      [PluralCategory.Other]: forms.other ?? '',
-    },
+    [key]: forms as Record<PluralCategory, string>,
   });
 }
 
@@ -151,6 +148,21 @@ describe('CachingTranslaasClient', () => {
         TranslaasOfflineCacheMissException
       );
     });
+
+    it('getEntryAsync_whenCacheFirstHitPolishTwo_resolvesFromCacheWithLang', async () => {
+      const client = createClient(OfflineFallbackMode.CacheFirst);
+      vi.mocked(cacheProvider.getGroupAsync).mockResolvedValue(
+        createPluralGroup('items', {
+          [PluralCategory.One]: 'jeden element',
+          [PluralCategory.Few]: '{N} elementy',
+          [PluralCategory.Many]: '{N} elementów',
+          [PluralCategory.Other]: '{N} elementów',
+        })
+      );
+
+      expect(await client.getEntryAsync('messages', 'items', 'pl', 2)).toBe('2 elementy');
+      expect(innerClient.getEntryAsync).not.toHaveBeenCalled();
+    });
   });
 
   describe('getEntryAsync ApiFirst', () => {
@@ -179,6 +191,21 @@ describe('CachingTranslaasClient', () => {
       const result = await client.getEntryAsync('common', 'hello', 'en');
 
       expect(result).toBe('Hello from Cache');
+    });
+
+    it('getEntryAsync_whenApiFirstFailsAndCacheHitFrenchZero_resolvesWithLang', async () => {
+      const client = createClient(OfflineFallbackMode.ApiFirst);
+      vi.mocked(innerClient.getEntryAsync).mockRejectedValue(
+        new TranslaasApiException('Network error', 503)
+      );
+      vi.mocked(cacheProvider.getGroupAsync).mockResolvedValue(
+        createPluralGroup('items', {
+          [PluralCategory.One]: 'un élément',
+          [PluralCategory.Other]: '{N} éléments',
+        })
+      );
+
+      expect(await client.getEntryAsync('messages', 'items', 'fr', 0)).toBe('un élément');
     });
   });
 
@@ -246,17 +273,98 @@ describe('CachingTranslaasClient', () => {
       expect(result).toBe('Hello John, you have 5 items and 3 pending');
     });
 
-    it('uses one/other plural rules offline', async () => {
+    it('getEntryAsync_whenCacheOnlyEnglishOneAndFive_selectsOneAndOtherForms', async () => {
       const client = createClient(OfflineFallbackMode.CacheOnly);
       vi.mocked(cacheProvider.getGroupAsync).mockResolvedValue(
         createPluralGroup('items', {
-          one: 'one item',
-          other: '{N} items',
+          [PluralCategory.One]: 'one item',
+          [PluralCategory.Other]: '{N} items',
         })
       );
 
       expect(await client.getEntryAsync('messages', 'items', 'en', 1)).toBe('one item');
       expect(await client.getEntryAsync('messages', 'items', 'en', 5)).toBe('5 items');
+      expect(innerClient.getEntryAsync).not.toHaveBeenCalled();
+    });
+
+    it('getEntryAsync_whenCacheOnlyArabicZero_selectsZeroForm', async () => {
+      const client = createClient(OfflineFallbackMode.CacheOnly);
+      vi.mocked(cacheProvider.getGroupAsync).mockResolvedValue(
+        createPluralGroup('items', {
+          [PluralCategory.Zero]: 'no items',
+          [PluralCategory.One]: 'one item',
+          [PluralCategory.Two]: 'two items',
+          [PluralCategory.Other]: '{N} items',
+        })
+      );
+
+      expect(await client.getEntryAsync('messages', 'items', 'ar', 0)).toBe('no items');
+      expect(innerClient.getEntryAsync).not.toHaveBeenCalled();
+    });
+
+    it('getEntryAsync_whenCacheOnlyArabicTwo_selectsTwoForm', async () => {
+      const client = createClient(OfflineFallbackMode.CacheOnly);
+      vi.mocked(cacheProvider.getGroupAsync).mockResolvedValue(
+        createPluralGroup('items', {
+          [PluralCategory.Zero]: 'no items',
+          [PluralCategory.One]: 'one item',
+          [PluralCategory.Two]: 'two items',
+          [PluralCategory.Other]: '{N} items',
+        })
+      );
+
+      expect(await client.getEntryAsync('messages', 'items', 'ar', 2)).toBe('two items');
+    });
+
+    it('getEntryAsync_whenCacheOnlyPolishTwo_selectsFewForm', async () => {
+      const client = createClient(OfflineFallbackMode.CacheOnly);
+      vi.mocked(cacheProvider.getGroupAsync).mockResolvedValue(
+        createPluralGroup('items', {
+          [PluralCategory.One]: 'jeden element',
+          [PluralCategory.Few]: '{N} elementy',
+          [PluralCategory.Many]: '{N} elementów',
+          [PluralCategory.Other]: '{N} elementów',
+        })
+      );
+
+      expect(await client.getEntryAsync('messages', 'items', 'pl', 2)).toBe('2 elementy');
+    });
+
+    it('getEntryAsync_whenCacheOnlyFrenchZero_selectsOneForm', async () => {
+      const client = createClient(OfflineFallbackMode.CacheOnly);
+      vi.mocked(cacheProvider.getGroupAsync).mockResolvedValue(
+        createPluralGroup('items', {
+          [PluralCategory.One]: 'un élément',
+          [PluralCategory.Other]: '{N} éléments',
+        })
+      );
+
+      expect(await client.getEntryAsync('messages', 'items', 'fr', 0)).toBe('un élément');
+    });
+
+    it('getEntryAsync_whenCacheOnlyMissingCategory_fallsBackToOtherForm', async () => {
+      const client = createClient(OfflineFallbackMode.CacheOnly);
+      vi.mocked(cacheProvider.getGroupAsync).mockResolvedValue(
+        createPluralGroup('items', {
+          [PluralCategory.One]: 'jeden element',
+          [PluralCategory.Other]: '{N} items',
+        })
+      );
+
+      expect(await client.getEntryAsync('messages', 'items', 'pl', 2)).toBe('2 items');
+    });
+
+    it('getEntryAsync_whenCacheOnlyUndefinedNumber_usesOtherCategory', async () => {
+      const client = createClient(OfflineFallbackMode.CacheOnly);
+      vi.mocked(cacheProvider.getGroupAsync).mockResolvedValue(
+        createPluralGroup('items', {
+          [PluralCategory.Zero]: 'no items',
+          [PluralCategory.One]: 'one item',
+          [PluralCategory.Other]: '{N} items',
+        })
+      );
+
+      expect(await client.getEntryAsync('messages', 'items', 'ar')).toBe('{N} items');
     });
   });
 

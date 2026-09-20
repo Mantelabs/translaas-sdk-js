@@ -1,6 +1,6 @@
 {
   "name": "@translaas/core",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Main package for the Translaas SDK - re-exports all packages",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -29,11 +29,11 @@
     "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
-    "@translaas/models": "0.5.3",
-    "@translaas/client": "0.5.3",
-    "@translaas/caching": "0.5.3",
-    "@translaas/caching-file": "0.5.3",
-    "@translaas/extensions": "0.5.3"
+    "@translaas/models": "0.6.0",
+    "@translaas/client": "0.5.4",
+    "@translaas/caching": "0.5.4",
+    "@translaas/caching-file": "0.6.0",
+    "@translaas/extensions": "0.5.4"
   },
   "keywords": [
     "translaas",

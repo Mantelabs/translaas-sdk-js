@@ -1,5 +1,16 @@
 # @translaas/core
 
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies [dd52586]
+  - @translaas/models@0.6.0
+  - @translaas/caching-file@0.6.0
+  - @translaas/caching@0.5.4
+  - @translaas/client@0.5.4
+  - @translaas/extensions@0.5.4
+
 ## 0.5.3
 
 ### Patch Changes
